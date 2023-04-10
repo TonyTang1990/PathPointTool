@@ -1,0 +1,11 @@
+# 文件以及目录过滤
+# 过滤library目录
+PathPointTool/Library/
+# 过滤.vs目录
+PathPointTool/.vs/
+# 过滤Temp目录
+PathPointTool/Temp/
+# 过滤obj目录
+PathPointTool/obj/
+# 过滤Log目录
+PathPointTool/Logs/
