@@ -64,6 +64,8 @@
     <Compile Include="Assets\Scripts\Core\PathPointTool\PathPointData.cs" />
     <Compile Include="Assets\Scripts\Core\PathPointTool\PathPointType.cs" />
     <Compile Include="Assets\Scripts\Utilities\UnityUtilities.cs" />
+    <Compile Include="Assets\Scripts\Core\Bezier\BezierUtilities.cs" />
+    <Compile Include="Assets\Scripts\Core\PathPointTool\PathDrawType.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

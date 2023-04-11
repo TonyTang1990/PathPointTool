@@ -29,6 +29,11 @@ namespace PathPoint
         private SerializedProperty mTypeProperty;
 
         /// <summary>
+        /// DrawType属性
+        /// </summary>
+        private SerializedProperty mDrawTypeProperty;
+
+        /// <summary>
         /// PathPointStartPos属性
         /// </summary>
         private SerializedProperty mPathPointStartPosProperty;
@@ -37,6 +42,16 @@ namespace PathPoint
         /// PathPointGap属性
         /// </summary>
         private SerializedProperty mPathPointGapProperty;
+
+        /// <summary>
+        /// DrawPathPointDistance属性
+        /// </summary>
+        private SerializedProperty mDrawPathPointDistanceProperty;
+
+        /// <summary>
+        /// PathPointSphereSize属性
+        /// </summary>
+        private SerializedProperty mPathPointSphereSizeProperty;
 
         /// <summary>
         /// PathPointSphereColor属性
@@ -49,6 +64,11 @@ namespace PathPoint
         private SerializedProperty mPathDrawColorProperty;
 
         /// <summary>
+        /// PathPointDrawColor属性
+        /// </summary>
+        private SerializedProperty mPathPointDrawColorProperty;
+
+        /// <summary>
         /// PathPointList属性
         /// </summary>
         private SerializedProperty mPathPointListProperty;
@@ -58,10 +78,16 @@ namespace PathPoint
         /// </summary>
         private bool mPathPointRelativePropertyChange;
 
+        /// <summary>
+        /// 绘制的路点列表
+        /// </summary>
+        private List<Vector3> mDrawPathPointList = new List<Vector3>();
+
         private void OnEnable()
         {
             InitTarget();
             InitProperties();
+            UpdateDrawDatas();
         }
 
         /// <summary>
@@ -78,10 +104,14 @@ namespace PathPoint
         private void InitProperties()
         {
             mTypeProperty ??= serializedObject.FindProperty("Type");
+            mDrawTypeProperty ??= serializedObject.FindProperty("DrawType");
             mPathPointStartPosProperty ??= serializedObject.FindProperty("PathPointStartPos");
             mPathPointGapProperty ??= serializedObject.FindProperty("PathPointGap");
+            mDrawPathPointDistanceProperty ??= serializedObject.FindProperty("DrawPathPointDistance");
+            mPathPointSphereSizeProperty ??= serializedObject.FindProperty("PathPointSphereSize");
             mPathPointSphereColorProperty ??= serializedObject.FindProperty("PathPointSphereColor");
             mPathDrawColorProperty ??= serializedObject.FindProperty("PathDrawColor");
+            mPathPointDrawColorProperty ??= serializedObject.FindProperty("PathPointDrawColor");
             mPathPointListProperty ??= serializedObject.FindProperty("PathPointList");
     }
 
@@ -102,8 +132,11 @@ namespace PathPoint
             {
                 mPathPointRelativePropertyChange = true;
             }
+            EditorGUILayout.PropertyField(mDrawPathPointDistanceProperty);
+            EditorGUILayout.PropertyField(mPathPointSphereSizeProperty);
             EditorGUILayout.PropertyField(mPathPointSphereColorProperty);
             EditorGUILayout.PropertyField(mPathDrawColorProperty);
+            EditorGUILayout.PropertyField(mPathPointDrawColorProperty);
             DrawPathPointListProperty();
             EditorGUILayout.EndVertical();
 
@@ -112,7 +145,9 @@ namespace PathPoint
 
             if (mPathPointRelativePropertyChange)
             {
-
+                Debug.Log($"路点相关数据属性变化，更新相关数据！");
+                mTarget.UpdatePathPointNames();
+                UpdateDrawDatas();
             }
         }
 
@@ -130,22 +165,119 @@ namespace PathPoint
                 EditorGUILayout.PropertyField(pathPointProperty);
                 if(GUILayout.Button("+", GUILayout.Width(40f)))
                 {
-                    mTarget?.AddPathPointByIndex(i);
+                    AddPathPointByIndex(i);
                     mPathPointRelativePropertyChange = true;
                 }
                 if (GUILayout.Button("-", GUILayout.Width(40f)))
                 {
-                    mTarget?.AddPathPointByIndex(i);
+                    RemovePathPointByIndex(i);
                     mPathPointRelativePropertyChange = true;
                 }
                 EditorGUILayout.EndHorizontal();
             }
             if(GUILayout.Button("+", GUILayout.ExpandWidth(true)))
             {
-                mTarget?.AddPathPointByIndex(pathPointNum);
+                AddPathPointByIndex(pathPointNum);
                 mPathPointRelativePropertyChange = true;
             }
             EditorGUILayout.EndVertical();
+        }
+
+        /// <summary>
+        /// 指定位置索引添加路点
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        private bool AddPathPointByIndex(int index)
+        {
+            var pathPointNum = mPathPointListProperty.arraySize;
+            if (index < 0 || index > pathPointNum)
+            {
+                Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{pathPointNum}，添加路点失败！");
+                return false;
+            }
+            var newPathPoint = mTarget.ConstructNewPathPoint(index);
+            mPathPointListProperty.InsertArrayElementAtIndex(index);
+            var newPathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(index);
+            newPathPointProperty.objectReferenceValue = newPathPoint.transform;
+            return true;
+        }
+
+        /// <summary>
+        /// 移除指定索引的路点
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        private bool RemovePathPointByIndex(int index)
+        {
+            var pathPointNum = mPathPointListProperty.arraySize;
+            if (index < 0 || index >= pathPointNum)
+            {
+                Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{pathPointNum - 1}，移除路点失败！");
+                return false;
+            }
+            mTarget.DestroyPathPointByIndex(index);
+            mPathPointListProperty.DeleteArrayElementAtIndex(index);
+            return true;
+        }
+
+        /// <summary>
+        /// 更新绘制数据
+        /// </summary>
+        private void UpdateDrawDatas()
+        {
+            mDrawPathPointList.Clear();
+            if(mDrawTypeProperty.intValue == (int)PathDrawType.Line)
+            {
+                for(int i = 0, length = mPathPointListProperty.arraySize; i < length; i++)
+                {
+                    var pathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(i);
+                    if(pathPointProperty.objectReferenceValue != null)
+                    {
+                        var pathPointTransform = pathPointProperty.objectReferenceValue as Transform;
+                        mDrawPathPointList.Add(pathPointTransform.position);
+                    }
+                }
+            }
+            else if(mDrawTypeProperty.intValue == (int)PathDrawType.Bezier)
+            {
+                var drawPathPointDistance = mDrawPathPointDistanceProperty.floatValue;
+                var maxPathPointIndex = Mathf.Clamp(mPathPointListProperty.arraySize - 1, 0 , int.MaxValue);
+                for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i+=2)
+                {
+                    var firstIndex = i;
+                    var secondIndex = Mathf.Clamp(i + 1, 0, maxPathPointIndex);
+                    var thirdIndex = Mathf.Clamp(i + 2, 0, maxPathPointIndex);
+                    var firstProperty = mPathPointListProperty.GetArrayElementAtIndex(firstIndex);
+                    var secondProperty = mPathPointListProperty.GetArrayElementAtIndex(secondIndex);
+                    var thirdProperty = mPathPointListProperty.GetArrayElementAtIndex(thirdIndex);
+                    var firstTransform = firstProperty.objectReferenceValue as Transform;
+                    var secondTransform = secondProperty.objectReferenceValue as Transform;
+                    var thirdTransform = thirdProperty.objectReferenceValue as Transform;
+
+                    //mDrawPathPointList.Add(pathPointTransform.position);
+                }
+            }
+            else if(mDrawTypeProperty.intValue == (int)PathDrawType.ThreeBezier)
+            {
+
+            }
+        }
+
+        /// <summary>
+        /// 选中场景绘制
+        /// </summary>
+        private void OnSceneGUI()
+        {
+            DrawPathPointLines();
+        }
+
+        /// <summary>
+        /// 绘制路点连线
+        /// </summary>
+        private void DrawPathPointLines()
+        {
+
         }
     }
 }

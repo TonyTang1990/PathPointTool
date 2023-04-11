@@ -28,6 +28,12 @@ namespace PathPoint
         public PathType Type = PathType.Normal;
 
         /// <summary>
+        /// 路线绘制类型
+        /// </summary>
+        [Header("路线绘制类型")]
+        public PathDrawType DrawType = PathDrawType.Line;
+
+        /// <summary>
         /// 路点起始位置
         /// </summary>
         [Header("路点起始位置")]
@@ -40,6 +46,19 @@ namespace PathPoint
         public float PathPointGap = 1;
 
         /// <summary>
+        /// 绘制路点间隔距离
+        /// </summary>
+        [Header("绘制路点间隔距离")]
+        public float DrawPathPointDistance = 0.2f;
+
+        /// <summary>
+        /// 路点球体大小
+        /// </summary>
+        [Header("路点球体大小")]
+        [Range(1f, 10f)]
+        public float PathPointSphereSize = 1f;
+
+        /// <summary>
         /// 路点球体颜色
         /// </summary>
         [Header("路点球体颜色")]
@@ -50,6 +69,12 @@ namespace PathPoint
         /// </summary>
         [Header("路线绘制颜色")]
         public Color PathDrawColor = Color.yellow;
+
+        /// <summary>
+        /// 细分路点绘制颜色
+        /// </summary>
+        [Header("细分路点绘制颜色")]
+        public Color PathPointDrawColor = Color.blue;
 
         /// <summary>
         /// 路点对象列表
@@ -72,7 +97,7 @@ namespace PathPoint
         private void Update()
         {
             CheckPathPointParentNode();
-            CheckPathPointsNode();
+            CheckPathPointNodes();
         }
 
         /// <summary>
@@ -107,13 +132,13 @@ namespace PathPoint
         /// <summary>
         /// 检查路点子节点
         /// </summary>
-        private void CheckPathPointsNode()
+        private void CheckPathPointNodes()
         {
             for(int i = PathPointList.Count - 1; i  >= 0; i--)
             {
                 if(PathPointList[i] == null)
                 {
-                    DeletePathPointByIndex(i);
+                    RemovePathPointByIndex(i);
                 }
             }
         }
@@ -125,14 +150,15 @@ namespace PathPoint
         /// <returns></returns>
         public bool AddPathPointByIndex(int index)
         {
-            if(index < 0 || index > PathPointList.Count)
+            var pathPointNum = PathPointList.Count;
+            if (index < 0 || index > pathPointNum)
             {
-                Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{PathPointList.Count}，添加路点失败！");
+                Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{pathPointNum}，添加路点失败！");
                 return false;
             }
             var newPathPoint = ConstructNewPathPoint(index);
-            PathPointList.Add(newPathPoint);
-            UpdatePathPointNames();
+            PathPointList.Insert(index, newPathPoint);
+            OnPathPointNumChanged();
             return true;
         }
 
@@ -141,22 +167,52 @@ namespace PathPoint
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public bool DeletePathPointByIndex(int index)
+        public bool RemovePathPointByIndex(int index)
         {
-            if (index < 0 || index >= PathPointList.Count)
+            var pathPointNum = PathPointList.Count;
+            if (index < 0 || index >= pathPointNum)
             {
-                Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{PathPointList.Count - 1}，移除路点失败！");
+                Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{pathPointNum - 1}，移除路点失败！");
                 return false;
             }
+            DestroyPathPointByIndex(index);
             PathPointList.RemoveAt(index);
-            UpdatePathPointNames();
+            OnPathPointNumChanged();
             return true;
+        }
+
+        /// <summary>
+        /// 销毁指定索引路点对象
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public bool DestroyPathPointByIndex(int index)
+        {
+            var pathPointNum = PathPointList.Count;
+            if (index < 0 || index >= pathPointNum)
+            {
+                Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{pathPointNum - 1}，销毁路点对象失败！");
+                return false;
+            }
+            if(PathPointList[index] != null)
+            {
+                GameObject.DestroyImmediate(PathPointList[index].gameObject);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// 响应路点数量变化
+        /// </summary>
+        private void OnPathPointNumChanged()
+        {
+            UpdatePathPointNames();
         }
 
         /// <summary>
         /// 更新路点节点名字
         /// </summary>
-        private void UpdatePathPointNames()
+        public void UpdatePathPointNames()
         {
             for(int i = 0, length = PathPointList.Count; i < length; i++)
             {
@@ -173,7 +229,7 @@ namespace PathPoint
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        private Transform ConstructNewPathPoint(int index)
+        public Transform ConstructNewPathPoint(int index)
         {
             // 路点初始位置根据路点索引是否有有效路点决定
             // 没有任何路点则用路点起始位置
@@ -219,5 +275,51 @@ namespace PathPoint
         {
             return index >= 0 && index < PathPointList.Count;
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// 场景Gizmos绘制
+        /// </summary>
+        private void OnDrawGizmos()
+        {
+            DrawPathPointSpheres();
+            DrawPathPointIcons();
+            DrawPathPointLabels();
+        }
+
+        /// <summary>
+        /// 绘制路点球体
+        /// </summary>
+        private void DrawPathPointSpheres()
+        {
+            var preGimozColor = Gizmos.color;
+            Gizmos.color = PathPointSphereColor;
+            for(int i = PathPointList.Count - 1; i >= 0; i--)
+            {
+                var pathPoint = PathPointList[i];
+                if(pathPoint != null)
+                {
+                    Gizmos.DrawWireSphere(pathPoint.position, Size)
+                }
+            }
+            Gizmos.color = preGimozColor;
+        }
+
+        /// <summary>
+        /// 绘制路点图标
+        /// </summary>
+        private void DrawPathPointIcons()
+        {
+
+        }
+
+        /// <summary>
+        /// 绘制路点标签
+        /// </summary>
+        private void DrawPathPointLabels()
+        {
+
+        }
+#endif
     }
 }
