@@ -25,7 +25,7 @@ public static class BezierUtilities
     /// <param name="p2">第三个点</param>
     /// <param name="t">插值(0-1)</param>
     /// <returns></returns>
-    public static Vector2 CaculateCubicBezierPoint(Vector3 p0, Vector3 p1, Vector3 p2, float t)
+    public static Vector3 CaculateBezierPoint(Vector3 p0, Vector3 p1, Vector3 p2, float t)
     {
         // 原始公式:
         /*
@@ -49,7 +49,7 @@ public static class BezierUtilities
     /// <param name="p3">第四个点</param>
     /// <param name="t">插值(0-1)</param>
     /// <returns></returns>
-    public static Vector2 CaculateThreeCubicBezierPoint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+    public static Vector3 CaculateCubicBezierPoint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
     {
         // 原始公式:
         /*
@@ -78,14 +78,14 @@ public static class BezierUtilities
     /// <param name="p2"></param>目标点
     /// <param name="segmentNum">细分段数</param>
     /// <returns>存储贝塞尔曲线点的数组</returns>
-    public static Vector3[] GetCubicBeizerList(Vector3 p0, Vector3 p1, Vector3 p2, int segmentNum)
+    public static Vector3[] GetBeizerList(Vector3 p0, Vector3 p1, Vector3 p2, int segmentNum)
     {
         var pathPointNum = segmentNum + 1;
         Vector3[] path = new Vector3[pathPointNum];
         for (int i = 0; i < pathPointNum; i++)
         {
             float t = i / (float)segmentNum;
-            Vector3 pathPoint = CaculateCubicBezierPoint(p0, p1, p2, t);
+            Vector3 pathPoint = CaculateBezierPoint(p0, p1, p2, t);
             path[i] = pathPoint;
         }
         return path;
@@ -101,14 +101,14 @@ public static class BezierUtilities
     /// <param name="p3"></param>目标点
     /// <param name="segmentNum">细分段数</param>
     /// <returns>存储贝塞尔曲线点的数组</returns>
-    public static Vector3[] GetThreeCubicBeizerList(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int segmentNum)
+    public static Vector3[] GetCubicBeizerList(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int segmentNum)
     {
         var pathPointNum = segmentNum + 1;
         Vector3[] path = new Vector3[pathPointNum];
         for (int i = 0; i < pathPointNum; i++)
         {
             float t = i / (float)segmentNum;
-            Vector3 pathPoint = CaculateThreeCubicBezierPoint(p0, p1, p2, p3, t);
+            Vector3 pathPoint = CaculateCubicBezierPoint(p0, p1, p2, p3, t);
             path[i] = pathPoint;
         }
         return path;

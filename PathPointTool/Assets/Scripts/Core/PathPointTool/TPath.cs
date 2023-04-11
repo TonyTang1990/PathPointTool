@@ -1,7 +1,7 @@
 ﻿/*
- * Description:             PathPointData.cs
+ * Description:             TPath.cs
  * Author:                  TONYTANG
- * Create Date:             2023/04/09
+ * Create Date:             2023/04/12
  */
 
 using System.Collections;
@@ -11,12 +11,11 @@ using UnityEngine;
 namespace PathPoint
 {
     /// <summary>
-    /// PathPointData.cs
-    /// 路点数据组件
+    /// TPath.cs
+    /// 路线抽象
     /// </summary>
-    public class PathPointData : MonoBehaviour
+    public class TPath
     {
-
 
     }
 }

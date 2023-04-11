@@ -1,5 +1,5 @@
 ﻿/*
- * Description:             PathType.cs
+ * Description:             TPathType.cs
  * Author:                  TONYTANG
  * Create Date:             2023/04/09
  */
@@ -11,12 +11,11 @@ using UnityEngine;
 namespace PathPoint
 {
     /// <summary>
-    /// PathType.cs
+    /// TPathType.cs
     /// 路点路线类型
     /// </summary>
-    public enum PathType
+    public enum TPathType
     {
         Normal = 1,             // 普通路线类型
-
     }
 }

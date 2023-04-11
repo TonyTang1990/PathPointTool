@@ -58,7 +58,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Editor\AssetProcesserHook\ScriptAutoProcess\ScriptKeywordProcesser.cs" />
     <Compile Include="Assets\Scripts\Editor\Core\Tile\TileVisualizationEditor.cs" />
-    <Compile Include="Assets\Scripts\Editor\Core\PathPointTool\PathPointSystemEditor.cs" />
+    <Compile Include="Assets\Scripts\Editor\Core\PathPointTool\TPathPointSystemEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

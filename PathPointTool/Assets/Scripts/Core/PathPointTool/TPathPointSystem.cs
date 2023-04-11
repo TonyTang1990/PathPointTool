@@ -1,5 +1,5 @@
 ﻿/*
- * Description:             PathPointSystem.cs
+ * Description:             TPathPointSystem.cs
  * Author:                  TONYTANG
  * Create Date:             2023/04/09
  */
@@ -11,10 +11,11 @@ using UnityEngine;
 namespace PathPoint
 {
     /// <summary>
-    /// PathPointSystem.cs
+    /// TPathPointSystem.cs
     /// 路点系统组件
     /// </summary>
-    public class PathPointSystem : MonoBehaviour
+    [ExecuteInEditMode]
+    public class TPathPointSystem : MonoBehaviour
     {
         /// <summary>
         /// 路点父节点名
@@ -25,13 +26,13 @@ namespace PathPoint
         /// 路线类型
         /// </summary>
         [Header("路线类型")]
-        public PathType Type = PathType.Normal;
+        public TPathType Type = TPathType.Normal;
 
         /// <summary>
         /// 路线绘制类型
         /// </summary>
         [Header("路线绘制类型")]
-        public PathDrawType DrawType = PathDrawType.Line;
+        public TPathDrawType DrawType = TPathDrawType.Line;
 
         /// <summary>
         /// 路点起始位置
@@ -46,17 +47,17 @@ namespace PathPoint
         public float PathPointGap = 1;
 
         /// <summary>
-        /// 绘制路点间隔距离
+        /// 分段数量
         /// </summary>
-        [Header("绘制路点间隔距离")]
-        public float DrawPathPointDistance = 0.2f;
+        [Header("分段数量")]
+        public int Segment = 15;
 
         /// <summary>
         /// 路点球体大小
         /// </summary>
         [Header("路点球体大小")]
-        [Range(1f, 10f)]
-        public float PathPointSphereSize = 1f;
+        [Range(0.1f, 10f)]
+        public float PathPointSphereSize = 0.5f;
 
         /// <summary>
         /// 路点球体颜色
@@ -74,7 +75,7 @@ namespace PathPoint
         /// 细分路点绘制颜色
         /// </summary>
         [Header("细分路点绘制颜色")]
-        public Color PathPointDrawColor = Color.blue;
+        public Color SubPathPointDrawColor = Color.blue;
 
         /// <summary>
         /// 路点对象列表
@@ -235,15 +236,17 @@ namespace PathPoint
             // 没有任何路点则用路点起始位置
             // 有有效路点则用当前构建位置的路点位置作为初始化位置
             var pathPoint = new GameObject(GetPathPointNameByIndex(index)).transform;
-            var isExistPathPoint = IsExistPathPointByIndex(index);
             var pathPointPosition = PathPointStartPos;
-            if(isExistPathPoint && PathPointList[index] != null)
+            var positionReferenceIndex = Mathf.Clamp(index, 0, PathPointList.Count - 1);
+            var isExistReferencePathPoint = IsExistPathPointByIndex(positionReferenceIndex);
+            if (isExistReferencePathPoint && PathPointList[positionReferenceIndex] != null)
             {
-                pathPointPosition = PathPointList[index].position;
+                pathPointPosition = PathPointList[positionReferenceIndex].position;
             }
             pathPoint.position = pathPointPosition;
-            pathPoint.gameObject.AddComponent<PathPointData>();
+            pathPoint.gameObject.AddComponent<TPathPointData>();
             pathPoint.SetParent(PathPointParentNode);
+            pathPoint.SetSiblingIndex(index);
             return pathPoint;
         }
 
@@ -252,9 +255,9 @@ namespace PathPoint
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        private string GetPathPointNameByIndex(int index)
+        public string GetPathPointNameByIndex(int index)
         {
-            return $"PathPoint({index})";
+            return $"Point({index})";
         }
 
         /// <summary>
@@ -284,7 +287,6 @@ namespace PathPoint
         {
             DrawPathPointSpheres();
             DrawPathPointIcons();
-            DrawPathPointLabels();
         }
 
         /// <summary>
@@ -294,12 +296,12 @@ namespace PathPoint
         {
             var preGimozColor = Gizmos.color;
             Gizmos.color = PathPointSphereColor;
-            for(int i = PathPointList.Count - 1; i >= 0; i--)
+            for(int i = 0, length = PathPointList.Count; i < length; i++)
             {
                 var pathPoint = PathPointList[i];
                 if(pathPoint != null)
                 {
-                    Gizmos.DrawWireSphere(pathPoint.position, Size)
+                    Gizmos.DrawWireSphere(pathPoint.position, PathPointSphereSize);
                 }
             }
             Gizmos.color = preGimozColor;
@@ -310,15 +312,14 @@ namespace PathPoint
         /// </summary>
         private void DrawPathPointIcons()
         {
-
-        }
-
-        /// <summary>
-        /// 绘制路点标签
-        /// </summary>
-        private void DrawPathPointLabels()
-        {
-
+            for (int i = 0, length = PathPointList.Count; i < length; i++)
+            {
+                var pathPoint = PathPointList[i];
+                if (pathPoint != null)
+                {
+                    Gizmos.DrawIcon(pathPoint.position, "PathPointTool/pathpoint");
+                }
+            }
         }
 #endif
     }

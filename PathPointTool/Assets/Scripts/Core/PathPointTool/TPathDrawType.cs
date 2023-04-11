@@ -1,5 +1,5 @@
 ﻿/*
- * Description:             PathDrawType.cs
+ * Description:             TPathDrawType.cs
  * Author:                  TONYTANG
  * Create Date:             2023/04/10
  */
@@ -14,7 +14,7 @@ namespace PathPoint
     /// PathDrawType.cs
     /// 路线绘制类型
     /// </summary>
-    public enum PathDrawType
+    public enum TPathDrawType
     {
         Line = 1,               // 直线
         Bezier,                 // 二阶Bezier曲线

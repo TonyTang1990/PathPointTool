@@ -59,13 +59,17 @@
     <Compile Include="Assets\Scripts\Utilities\PathUtilities.cs" />
     <Compile Include="Assets\Scripts\Utilities\FolderUtilities.cs" />
     <Compile Include="Assets\Scripts\Core\Tile\TileVisualization.cs" />
-    <Compile Include="Assets\Scripts\Core\PathPointTool\PathPointSystem.cs" />
-    <Compile Include="Assets\Scripts\Core\PathPointTool\PathType.cs" />
-    <Compile Include="Assets\Scripts\Core\PathPointTool\PathPointData.cs" />
-    <Compile Include="Assets\Scripts\Core\PathPointTool\PathPointType.cs" />
+    <Compile Include="Assets\Scripts\Core\PathPointTool\TPathPointSystem.cs" />
+    <Compile Include="Assets\Scripts\Core\PathPointTool\TPathType.cs" />
+    <Compile Include="Assets\Scripts\Core\PathPointTool\TPathPointData.cs" />
+    <Compile Include="Assets\Scripts\Core\PathPointTool\TPathPointType.cs" />
     <Compile Include="Assets\Scripts\Utilities\UnityUtilities.cs" />
     <Compile Include="Assets\Scripts\Core\Bezier\BezierUtilities.cs" />
-    <Compile Include="Assets\Scripts\Core\PathPointTool\PathDrawType.cs" />
+    <Compile Include="Assets\Scripts\Core\PathPointTool\TPathDrawType.cs" />
+    <Compile Include="Assets\Scripts\Core\PathPointTool\TPathPointConst.cs" />
+    <Compile Include="Assets\Scripts\Core\PathPointTool\TPathPointUtilities.cs" />
+    <Compile Include="Assets\Scripts\Core\PathPointTool\TPath.cs" />
+    <Compile Include="Assets\Scripts\Core\PathPointTool\TSegment.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
