@@ -27,15 +27,6 @@ namespace PathPoint
         }
 
         /// <summary>
-        /// 路线类型
-        /// </summary>
-        public TPathType PathType
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
         /// 分段数量
         /// </summary>
         public int Segment
@@ -83,7 +74,6 @@ namespace PathPoint
             PathPointList = new List<Vector3>();
             SegmentList = new List<TSegment>();
             PathwayType = TPathwayType.Line;
-            PathType = TPathType.Normal;
             Segment = 15;
             Length = 0f;
             mPointDistanceList = new List<float>();
@@ -107,7 +97,6 @@ namespace PathPoint
             PathPointList.Clear();
             SegmentList.Clear();
             PathwayType = TPathwayType.Line;
-            PathType = TPathType.Normal;
             Segment = 15;
             Length = 0f;
             mPointDistanceList.Clear();
@@ -118,14 +107,12 @@ namespace PathPoint
         /// </summary>
         /// <param name="points"></param>
         /// <param name="pathwayType"></param>
-        /// <param name="pathType"></param>
         /// <param name="segment"></param>
-        public void InitByPoints(IEnumerable<Vector3> points, TPathwayType pathwayType = TPathwayType.Line, TPathType pathType = TPathType.Normal, int segment = 10)
+        public void InitByPoints(IEnumerable<Vector3> points, TPathwayType pathwayType = TPathwayType.Line, int segment = 10)
         {
             PathPointList.Clear();
             PathPointList.AddRange(points);
             PathwayType = pathwayType;
-            PathType = pathType;
             Segment = segment;
         }
 
@@ -134,9 +121,8 @@ namespace PathPoint
         /// </summary>
         /// <param name="transforms"></param>
         /// <param name="pathwayType"></param>
-        /// <param name="pathType"></param>
         /// <param name="segment"></param>
-        public void InitByTransforms(IEnumerable<Transform> transforms, TPathwayType pathwayType = TPathwayType.Line, TPathType pathType = TPathType.Normal, int segment = 10)
+        public void InitByTransforms(IEnumerable<Transform> transforms, TPathwayType pathwayType = TPathwayType.Line, int segment = 10)
         {
             PathPointList.Clear();
             var transformIndex = -1;
@@ -151,7 +137,6 @@ namespace PathPoint
                 PathPointList.Add(transform.position);
             }
             PathwayType = pathwayType;
-            PathType = pathType;
             Segment = segment;
         }
 

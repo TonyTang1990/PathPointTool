@@ -96,10 +96,15 @@ namespace PathPoint
         public List<Transform> PathPointList = new List<Transform>();
 
         /// <summary>
+        /// 模拟移动对象
+        /// </summary>
+        [Header("模拟移动对象")]
+        public GameObject SimulationMoveGO;
+
+        /// <summary>
         /// 路点父节点
         /// </summary>
-        [Header("路点父节点")]
-        public Transform PathPointParentNode;
+        private Transform mPathPointParentNode;
 
         private void Awake()
         {
@@ -118,11 +123,11 @@ namespace PathPoint
         /// </summary>
         private void InitPathPointParentNode()
         {
-            if (PathPointParentNode == null)
+            if (mPathPointParentNode == null)
             {
-                PathPointParentNode = new GameObject(PathPointParentNodeName).transform;
-                PathPointParentNode.SetParent(transform);
-                PathPointParentNode.localPosition = Vector3.zero;
+                mPathPointParentNode = new GameObject(PathPointParentNodeName).transform;
+                mPathPointParentNode.SetParent(transform);
+                mPathPointParentNode.localPosition = Vector3.zero;
             }
         }
 
@@ -131,14 +136,14 @@ namespace PathPoint
         /// </summary>
         private void CheckPathPointParentNode()
         {
-            if (PathPointParentNode == null)
+            if (mPathPointParentNode == null)
             {
                 InitPathPointParentNode();
             }
-            if (PathPointParentNode != null && PathPointParentNode.parent != transform)
+            if (mPathPointParentNode != null && mPathPointParentNode.parent != transform)
             {
-                PathPointParentNode.SetParent(transform);
-                PathPointParentNode.localPosition = Vector3.zero;
+                mPathPointParentNode.SetParent(transform);
+                mPathPointParentNode.localPosition = Vector3.zero;
             }
         }
 
@@ -153,6 +158,19 @@ namespace PathPoint
                 {
                     RemovePathPointByIndex(i);
                 }
+            }
+        }
+
+        /// <summary>
+        /// 获取所有路点位置列表
+        /// </summary>
+        /// <returns></returns>
+        public List<Vector3> GetPathPointPosList()
+        {
+            var pathPointPosList = new List<Vector3>();
+            foreach (var pathPoint in PathPointList)
+            {
+
             }
         }
 
@@ -257,7 +275,7 @@ namespace PathPoint
             }
             pathPoint.position = pathPointPosition;
             pathPoint.gameObject.AddComponent<TPathPointData>();
-            pathPoint.SetParent(PathPointParentNode);
+            pathPoint.SetParent(mPathPointParentNode);
             pathPoint.SetSiblingIndex(index);
             return pathPoint;
         }

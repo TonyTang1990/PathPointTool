@@ -85,6 +85,11 @@ namespace PathPoint
         private SerializedProperty mPathPointListProperty;
 
         /// <summary>
+        /// SimulationMoveGO属性
+        /// </summary>
+        private SerializedProperty mSimulationMoveGOProperty;
+
+        /// <summary>
         /// 路径相关属性变化
         /// </summary>
         private bool mPathPointRelativePropertyChange;
@@ -105,9 +110,9 @@ namespace PathPoint
         private bool mPathPointFoldOut = true;
 
         /// <summary>
-        /// 模拟移动对象
+        /// 模拟路线缓动Tweener
         /// </summary>
-        private GameObject mSimulationMoveGO;
+        private TPathTweener mSimulationPathTweener;
 
         private void OnEnable()
         {
@@ -142,6 +147,7 @@ namespace PathPoint
             mPathDrawColorProperty ??= serializedObject.FindProperty("PathDrawColor");
             mSubPathPointDrawColorProperty ??= serializedObject.FindProperty("SubPathPointDrawColor");
             mPathPointListProperty ??= serializedObject.FindProperty("PathPointList");
+            mSimulationMoveGOProperty ??= serializedObject.FindProperty("SimulationMoveGO");
         }
 
         /// <summary>
@@ -205,10 +211,9 @@ namespace PathPoint
             EditorGUILayout.PropertyField(mSubPathPointDrawColorProperty);
 
             DrawPathMoveSimulationArea();
-
-            DrawPathPointOperationArea();
-
+            DrawPositionCorrectArea();
             DrawPathPointListProperty();
+            DrawExportDataArea();
 
             EditorGUILayout.EndVertical();
 
@@ -230,7 +235,7 @@ namespace PathPoint
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("模拟对象:", GUILayout.Width(100f));
-            mSimulationMoveGO = EditorGUILayout.ObjectField(mSimulationMoveGO, TPathConst.GameObjectType, true, GUILayout.Width(200f)) as GameObject;
+            mSimulationMoveGOProperty.objectReferenceValue = EditorGUILayout.ObjectField(mSimulationMoveGOProperty.objectReferenceValue, TPathConst.GameObjectType, true, GUILayout.Width(200f));
             if (GUILayout.Button("模拟移动", GUILayout.ExpandWidth(true)))
             {
                 DoSimulationMove();
@@ -239,20 +244,25 @@ namespace PathPoint
         }
 
         /// <summary>
-        /// 绘制路点操作
+        /// 绘制路点矫正区域
         /// </summary>
-        private void DrawPathPointOperationArea()
+        private void DrawPositionCorrectArea()
         {
-            EditorGUILayout.BeginVertical();
             if (GUILayout.Button("路点位置矫正", GUILayout.ExpandWidth(true)))
             {
                 CorrectPathPointPositions();
             }
+        }
+
+        /// <summary>
+        /// 绘制数据导出区域
+        /// </summary>
+        private void DrawExportDataArea()
+        {
             if (GUILayout.Button("数据导出", GUILayout.ExpandWidth(true)))
             {
                 ExportPathPointDatas();
             }
-            EditorGUILayout.EndVertical();
         }
 
         /// <summary>
@@ -542,18 +552,34 @@ namespace PathPoint
         /// </summary>
         private void DoSimulationMove()
         {
-            if(mSimulationMoveGO == null)
+            if(mSimulationMoveGOProperty.objectReferenceValue == null)
             {
-                Debug.LogError($"未设置任何有效模拟路点移动对象！");
+                Debug.LogError($"未设置任何有效模拟路点移动对象，模拟路线移动失败！");
                 return;
             }
-            var simulationMoveAsset = AssetDatabase.GetAssetPath(mSimulationMoveGO);
+            var simulationMoveAsset = AssetDatabase.GetAssetPath(mSimulationMoveGOProperty.objectReferenceValue);
             if(simulationMoveAsset != null)
             {
                 Debug.LogError($"不允许模拟本地Asset路点移动！");
                 return;
             }
-
+            if(mSimulationPathTweener != null)
+            {
+                TPathTweenerManager.Singleton.RemovePathTween(mSimulationPathTweener);
+            }
+            var pathPointList = mTarget.GetPathPointNameByIndex();
+            var simulationMoveGo = mSimulationMoveGOProperty.objectReferenceValue as GameObjectPool;
+            var duration = mDurationProperty.floatValue;
+            var isLoop = mIsLoopProperty.boolValue;
+            var updateForward = mUpdateForward.boolValue;
+            var pathwayType = (TPathwayType)mPathwayTypeProperty.intValue;
+            mSimulationPathTweener = TPathTweenerManager.Singleton.DoPathTweenByPoints(simulationMoveGo.transform,
+                                                                                        pathPointList, duration, isLoop,
+                                                                                        updateForward, () =>
+                                                                                         {
+                                                                                             mSimulationPathTweener = null;
+                                                                                             Debug.Log($"路线模拟移动完成！");
+                                                                                         }, pathwayType);
         }
     }
 }

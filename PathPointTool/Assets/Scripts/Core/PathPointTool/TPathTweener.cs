@@ -147,12 +147,11 @@ namespace PathPoint
         /// <param name="segment"></param>
         public void InitByPoints(Transform target, IEnumerable<Vector3> points, float duration,
                                     TPathwayType pathwayType = TPathwayType.Line, bool isLoop = false,
-                                        Action completeCB = null, bool updateForward = false,
-                                        TPathType pathType = TPathType.Normal, int segment = 10)
+                                        Action completeCB = null, bool updateForward = false, int segment = 10)
         {
             Target = target;
             mPath = ObjectPool.Singleton.pop<TPath>();
-            mPath.InitByPoints(points, pathwayType, pathType, segment);
+            mPath.InitByPoints(points, pathwayType, segment);
             Duration = duration;
             IsLoop = isLoop;
             mCompleteCB = completeCB;
@@ -167,18 +166,16 @@ namespace PathPoint
         /// <param name="duration"></param>
         /// <param name="pathwayType"></param>
         /// <param name="isLoop"></param>
-        /// <param name="completeCB"></param>
         /// <param name="updateForward"></param>
-        /// <param name="pathType"></param>
+        /// <param name="completeCB"></param>
         /// <param name="segment"></param>
-        public void InitByTransforms(Transform target, IEnumerable<Transform> transforms,
-                                        float duration, TPathwayType pathwayType = TPathwayType.Line,
-                                        bool isLoop = false, Action completeCB = null, bool updateForward = false,
-                                        TPathType pathType = TPathType.Normal, int segment = 10)
+        public void InitByTransforms(Transform target, IEnumerable<Transform> transforms, float duration,
+                                        TPathwayType pathwayType = TPathwayType.Line, bool isLoop = false,
+                                        bool updateForward = false, Action completeCB = null, int segment = 10)
         {
             Target = target;
             mPath = ObjectPool.Singleton.pop<TPath>();
-            mPath.InitByTransforms(transforms, pathwayType, pathType, segment);
+            mPath.InitByTransforms(transforms, pathwayType, segment);
             Duration = duration;
             IsLoop = isLoop;
             mCompleteCB = completeCB;
@@ -226,20 +223,20 @@ namespace PathPoint
                 return;
             }
             mTimePassed += deltaTime;
-            var percent = mTimePassed / Duration;
-            if (IsLoop)
+            var progress = 0f;
+            if(Duration != 0)
             {
-                percent = percent % 1f;
-                UpdateTargetByPercent(percent);
+                progress = mTimePassed / Duration;
+                progress = IsLoop ? (progress % 1) : Mathf.Clamp01(progress);
             }
             else
             {
-                percent = Mathf.Clamp01(percent);
-                UpdateTargetByPercent(percent);
-                if (Mathf.Approximately(percent, 1))
-                {
-                    OnPathTweenComplete();
-                }
+                progress = 1;
+            }
+            UpdateTargetByPercent(progress);
+            if (!IsLoop && Mathf.Approximately(progress, 1))
+            {
+                OnPathTweenComplete();
             }
         }
 

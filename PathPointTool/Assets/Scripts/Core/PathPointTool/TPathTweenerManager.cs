@@ -16,6 +16,7 @@ namespace PathPoint
     /// 路线缓动管理单例类
     /// </summary>
     [DisallowMultipleComponent]
+    [InitializeOnLoad]
     [ExecuteInEditMode]
     public class TPathTweenerManager : MonoBehaviour
     {
@@ -29,6 +30,7 @@ namespace PathPoint
                 if(mSingleton == null)
                 {
                     Init();
+                    Debug.Log($"未初始化路线PathTweenerManager,自动调用PathTweenerManager.Init()方法初始化！");
                 }
                 return mSingleton;
             }
@@ -38,7 +40,7 @@ namespace PathPoint
         /// <summary>
         /// 路线缓动对象列表
         /// </summary>
-        private List<TPathTweener> mTPathTweenerList = new List<TPathTweener>();
+        private List<TPathTweener> mTPathTweenerList;
 
         /// <summary>
         /// 初始化
@@ -52,18 +54,98 @@ namespace PathPoint
             }
             var tpathTweenerManagerGO = new GameObject("TPathTweenerManager");
             tpathTweenerManagerGO.AddComponent<TPathTweenerManager>();
-            DontDestroyOnLoad(tpathTweenerManagerGO);
         }
+
+#if UNITY_EDITOR
+        static TPathTweenerManager()
+        {
+            Debug.Log($"static PathTweenerManager.PathTweenerManager()");
+            UnregisterEditorUpdate();
+        }
+
+        [InitializedOnLoadMethod]
+        private static void OnInitializedOnLoadMethod()
+        {
+            Debug.Log($"static PathTweenerManager.OnInitializedOnLoadMethod()");
+            var pathTweenerManager = GameObject.FindObjectOfType<pathTweenerManager>();
+            if(pathTweenerManager != null)
+            {
+                Debug.Log($"找回场景里PathTweenerManager单例组件对象！");
+                mSingleton = pathTweenerManager;
+                mSingleton.MembersInit();
+                RegisterEditorUpdate();
+            }
+        }
+
+        /// <summary>
+        /// 注入Editor Update
+        /// </summary>
+        private static void ReigsterEditorUpdate()
+        {
+            EditorApplication.update += EditorUpdate;
+            Debug.Log($"PathTweenerManager注入EditorApplication.update");
+        }
+
+        /// <summary>
+        /// 取消Editor Update注入
+        /// </summary>
+        private static void UnregisterEditorUpdate()
+        {
+            EditorApplication.update -= EditorUpdate;
+            Debug.Log($"PathTweenerManager取消注入EditorApplication.update");
+        }
+
+        /// <summary>
+        /// Editor更新
+        /// </summary>
+        private static void EditorUpdate()
+        {
+            mSingleton?.Update();
+        }
+#endif
 
         private void Awake()
         {
             if (mSingleton != null)
             {
                 Debug.LogError($"不允许挂载多个TPathTweenerManager脚本，自动删除！");
-                Destroy(this);
+                DestroyImmediate(this);
                 return;
             }
+            Debug.Log($"PathTweenerManager模块初始化！");
             mSingleton = this;
+            if(Application.isPlaying)
+            {
+                DontDestroyOnLoad(this);
+            }
+            MembersInit();
+#if UNITY_EDITOR
+            UnregisterEditorUpdate();
+            RegisterEditorUpdate();
+#endif
+        }
+
+        /// <summary>
+        /// 响应销毁
+        /// </summary>
+        private void OnDestroy()
+        {
+            if(mSingleton == this)
+            {
+#if UNITY_EDITOR
+                UnregisterEditorUpdate();
+#endif
+                RemoveAllPathTweens();
+                mSingleton = null;
+            }
+        }
+
+        /// <summary>
+        /// 成员初始化
+        /// </summary>
+        private void MembersInit()
+        {
+            mTPathTweenerList = new List<TPathTweener>();
         }
 
         /// <summary>
@@ -78,29 +160,21 @@ namespace PathPoint
             }
         }
 
-        private void OnDestroy()
-        {
-            RemoveAllPathTweens();
-            mSingleton = null;
-        }
-
         /// <summary>
         /// 指定路点列表路线移动
         /// </summary>
         /// <param name="target"></param>
         /// <param name="points"></param>
         /// <param name="duration"></param>
-        /// <param name="pathwayType"></param>
         /// <param name="isLoop"></param>
-        /// <param name="completeCB"></param>
         /// <param name="updateFoward"></param>
-        /// <param name="pathType"></param>
+        /// <param name="completeCB"></param>
+        /// <param name="pathwayType"></param>
         /// <param name="segment"></param>
         /// <returns></returns>
-        public TPathTweener DoPathTweenByPoints(Transform target, IEnumerable<Vector3> points,
-                                                float duration, TPathwayType pathwayType = TPathwayType.Line,
-                                                bool isLoop = false, Action completeCB = null, bool updateFoward = false,
-                                                TPathType pathType = TPathType.Normal, int segment = 10)
+        public TPathTweener DoPathTweenByPoints(Transform target, IEnumerable<Vector3> points, float duration,
+                                                bool isLoop = false, bool updateFoward = false, Action completeCB = null,
+                                                TPathwayType pathwayType = TPathwayType.Line, int segment = 10)
         {
             if (target == null)
             {
@@ -108,7 +182,7 @@ namespace PathPoint
                 return null;
             }
             var tpathTweener = ObjectPool.Singleton.pop<TPathTweener>();
-            tpathTweener.InitByPoints(target, points, duration, pathwayType, isLoop, completeCB, updateFoward, pathType, segment);
+            tpathTweener.InitByPoints(target, points, duration, pathwayType, isLoop, updateFoward, completeCB, segment);
             AddTPathTPathTweener(tpathTweener);
             return tpathTweener;
         }
@@ -119,17 +193,15 @@ namespace PathPoint
         /// <param name="target"></param>
         /// <param name="transforms"></param>
         /// <param name="duration"></param>
-        /// <param name="pathwayType"></param>
         /// <param name="isLoop"></param>
-        /// <param name="completeCB"></param>
         /// <param name="updateFoward"></param>
-        /// <param name="pathType"></param>
+        /// <param name="completeCB"></param>
+        /// <param name="pathwayType"></param>
         /// <param name="segment"></param>
         /// <returns></returns>
-        public TPathTweener DoPathTweenByTransforms(Transform target, IEnumerable<Transform> transforms,
-                                                    float duration, TPathwayType pathwayType = TPathwayType.Line,
-                                                    bool isLoop = false, Action completeCB = null, bool updateFoward = false,
-                                                    TPathType pathType = TPathType.Normal, int segment = 10)
+        public TPathTweener DoPathTweenByTransforms(Transform target, IEnumerable<Transform> transforms, float duration,
+                                                    bool isLoop = false, bool updateFoward = false, Action completeCB = null,
+                                                    TPathwayType pathwayType = TPathwayType.Line, int segment = 10)
         {
             if (target == null)
             {
@@ -137,7 +209,7 @@ namespace PathPoint
                 return null;
             }
             var tpathTweener = ObjectPool.Singleton.pop<TPathTweener>();
-            tpathTweener.InitByTransforms(target, transforms, duration, pathwayType, isLoop, completeCB, updateFoward, pathType, segment);
+            tpathTweener.InitByTransforms(target, transforms, duration, pathwayType, isLoop, updateFoward, completeCB, segment);
             AddTPathTPathTweener(tpathTweener);
             return tpathTweener;
         }
@@ -207,13 +279,13 @@ namespace PathPoint
         /// <summary>
         /// 移除所有缓动路线
         /// </summary>
-        public void RemoveAllPathTweens()
+        private void RemoveAllPathTweens()
         {
             for (int i = mTPathTweenerList.Count - 1; i >= 0; i++)
             {
                 ObjectPool.Singleton.push<TPathTweener>(mTPathTweenerList[i]);
-                mTPathTweenerList.RemoveAt(i);
             }
+            mTPathTweenerList.Clear();
         }
 
         /// <summary>
