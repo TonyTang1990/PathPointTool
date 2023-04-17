@@ -1,5 +1,5 @@
 ﻿/*
- * Description:             TPathPointConst.cs
+ * Description:             TPathConst.cs
  * Author:                  TONYTANG
  * Create Date:             2023/04/11
  */
@@ -12,10 +12,10 @@ using UnityEngine;
 namespace PathPoint
 {
     /// <summary>
-    /// TPathPointConst.cs
-    /// 路点常量
+    /// TPathConst.cs
+    /// 路线常量
     /// </summary>
-    public static class TPathPointConst
+    public static class TPathConst
     {
         /// <summary>
         /// 导出目录相对工程目录路径
@@ -26,5 +26,10 @@ namespace PathPoint
         /// Transform类型信息
         /// </summary>
         public static Type TransformType = typeof(Transform);
+
+        /// <summary>
+        /// GameObject类型信息
+        /// </summary>
+        public static Type GameObjectType = typeof(GameObject);
     }
 }

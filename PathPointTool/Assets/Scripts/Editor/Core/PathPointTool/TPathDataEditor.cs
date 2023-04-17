@@ -1,5 +1,5 @@
 ﻿/*
- * Description:             TPathPointSystemEditor.cs
+ * Description:             TPathDataEditor.cs
  * Author:                  TONYTANG
  * Create Date:             2023/04/09
  */
@@ -13,26 +13,36 @@ using UnityEngine;
 namespace PathPoint
 {
     /// <summary>
-    /// TPathPointSystemEditor.cs
+    /// TPathDataEditor.cs
     /// 路点系统组件Editor
     /// </summary>
-    [CustomEditor(typeof(TPathPointSystem))]
-    public class TPathPointSystemEditor : Editor
+    [CustomEditor(typeof(TPathData))]
+    public class TPathDataEditor : Editor
     {
         /// <summary>
         /// 目标组件
         /// </summary>
-        private TPathPointSystem mTarget;
+        private TPathData mTarget;
 
         /// <summary>
-        /// Type属性
+        /// PathType属性
         /// </summary>
-        private SerializedProperty mTypeProperty;
+        private SerializedProperty mPathTypeProperty;
 
         /// <summary>
-        /// DrawType属性
+        /// PathwayType属性
         /// </summary>
-        private SerializedProperty mDrawTypeProperty;
+        private SerializedProperty mPathwayTypeProperty;
+
+        /// <summary>
+        /// IsLoop属性
+        /// </summary>
+        private SerializedProperty mIsLoopProperty;
+
+        /// <summary>
+        /// Duration属性
+        /// </summary>
+        private SerializedProperty mDurationProperty;
 
         /// <summary>
         /// PathPointStartPos属性
@@ -94,6 +104,11 @@ namespace PathPoint
         /// </summary>
         private bool mPathPointFoldOut = true;
 
+        /// <summary>
+        /// 模拟移动对象
+        /// </summary>
+        private GameObject mSimulationMoveGO;
+
         private void OnEnable()
         {
             InitTarget();
@@ -107,7 +122,7 @@ namespace PathPoint
         /// </summary>
         private void InitTarget()
         {
-            mTarget ??= (target as TPathPointSystem);
+            mTarget ??= (target as TPathData);
         }
 
         /// <summary>
@@ -115,8 +130,10 @@ namespace PathPoint
         /// </summary>
         private void InitProperties()
         {
-            mTypeProperty ??= serializedObject.FindProperty("Type");
-            mDrawTypeProperty ??= serializedObject.FindProperty("DrawType");
+            mPathTypeProperty ??= serializedObject.FindProperty("PathType");
+            mPathwayTypeProperty ??= serializedObject.FindProperty("PathwayType");
+            mIsLoopProperty ??= serializedObject.FindProperty("IsLoop");
+            mDurationProperty ??= serializedObject.FindProperty("Duration");
             mPathPointStartPosProperty ??= serializedObject.FindProperty("PathPointStartPos");
             mPathPointGapProperty ??= serializedObject.FindProperty("PathPointGap");
             mSegmentProperty ??= serializedObject.FindProperty("Segment");
@@ -154,13 +171,17 @@ namespace PathPoint
             serializedObject.Update();
 
             EditorGUILayout.BeginVertical();
-            EditorGUILayout.PropertyField(mTypeProperty);
+            EditorGUILayout.PropertyField(mPathTypeProperty);
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(mDrawTypeProperty);
+            EditorGUILayout.PropertyField(mPathwayTypeProperty);
             if (EditorGUI.EndChangeCheck())
             {
                 mPathPointRelativePropertyChange = true;
             }
+
+            EditorGUILayout.PropertyField(mIsLoopProperty);
+            EditorGUILayout.PropertyField(mDurationProperty);
+
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(mPathPointStartPosProperty);
             if (EditorGUI.EndChangeCheck())
@@ -168,6 +189,7 @@ namespace PathPoint
                 CorrectPathPointPositions();
                 mPathPointRelativePropertyChange = true;
             }
+
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(mPathPointGapProperty);
             if (EditorGUI.EndChangeCheck())
@@ -175,13 +197,19 @@ namespace PathPoint
                 CorrectPathPointPositions();
                 mPathPointRelativePropertyChange = true;
             }
+
             EditorGUILayout.PropertyField(mSegmentProperty);
             EditorGUILayout.PropertyField(mPathPointSphereSizeProperty);
             EditorGUILayout.PropertyField(mPathPointSphereColorProperty);
             EditorGUILayout.PropertyField(mPathDrawColorProperty);
             EditorGUILayout.PropertyField(mSubPathPointDrawColorProperty);
+
+            DrawPathMoveSimulationArea();
+
+            DrawPathPointOperationArea();
+
             DrawPathPointListProperty();
-            DrawPathPointOperations();
+
             EditorGUILayout.EndVertical();
 
             // 确保对SerializedObject和SerializedProperty的数据修改写入生效
@@ -194,6 +222,37 @@ namespace PathPoint
                 UpdateDrawDatas();
                 mPathPointRelativePropertyChange = false;
             }
+        }
+        /// <summary>
+        /// 绘制模拟路点移动区域
+        /// </summary>
+        private void DrawPathMoveSimulationArea()
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("模拟对象:", GUILayout.Width(100f));
+            mSimulationMoveGO = EditorGUILayout.ObjectField(mSimulationMoveGO, TPathConst.GameObjectType, true, GUILayout.Width(200f)) as GameObject;
+            if (GUILayout.Button("模拟移动", GUILayout.ExpandWidth(true)))
+            {
+                DoSimulationMove();
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+
+        /// <summary>
+        /// 绘制路点操作
+        /// </summary>
+        private void DrawPathPointOperationArea()
+        {
+            EditorGUILayout.BeginVertical();
+            if (GUILayout.Button("路点位置矫正", GUILayout.ExpandWidth(true)))
+            {
+                CorrectPathPointPositions();
+            }
+            if (GUILayout.Button("数据导出", GUILayout.ExpandWidth(true)))
+            {
+                ExportPathPointDatas();
+            }
+            EditorGUILayout.EndVertical();
         }
 
         /// <summary>
@@ -210,7 +269,7 @@ namespace PathPoint
                     EditorGUILayout.BeginHorizontal();
                     var pathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(i);
                     EditorGUILayout.LabelField($"{i}", GUILayout.Width(20f));
-                    EditorGUILayout.ObjectField(pathPointProperty.objectReferenceValue, TPathPointConst.TransformType, false, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.ObjectField(pathPointProperty.objectReferenceValue, TPathConst.TransformType, false, GUILayout.ExpandWidth(true));
                     if (GUILayout.Button("+", GUILayout.Width(40f)))
                     {
                         AddPathPointByIndex(i);
@@ -228,23 +287,6 @@ namespace PathPoint
             {
                 AddPathPointByIndex(mPathPointListProperty.arraySize);
                 mPathPointRelativePropertyChange = true;
-            }
-            EditorGUILayout.EndVertical();
-        }
-
-        /// <summary>
-        /// 绘制路点操作
-        /// </summary>
-        private void DrawPathPointOperations()
-        {
-            EditorGUILayout.BeginVertical();
-            if (GUILayout.Button("路点位置矫正", GUILayout.ExpandWidth(true)))
-            {
-                CorrectPathPointPositions();
-            }
-            if (GUILayout.Button("数据导出", GUILayout.ExpandWidth(true)))
-            {
-                ExportPathPointDatas();
             }
             EditorGUILayout.EndVertical();
         }
@@ -295,7 +337,7 @@ namespace PathPoint
         private void UpdateDrawDatas()
         {
             mDrawPathPointList.Clear();
-            if(mDrawTypeProperty.intValue == (int)TPathDrawType.Line)
+            if(mPathwayTypeProperty.intValue == (int)TPathwayType.Line)
             {
                 for(int i = 0, length = mPathPointListProperty.arraySize; i < length; i++)
                 {
@@ -307,7 +349,7 @@ namespace PathPoint
                     }
                 }
             }
-            else if(mDrawTypeProperty.intValue == (int)TPathDrawType.Bezier)
+            else if(mPathwayTypeProperty.intValue == (int)TPathwayType.Bezier)
             {
                 var segmentNum = mSegmentProperty.intValue;
                 var maxPathPointIndex = Mathf.Clamp(mPathPointListProperty.arraySize - 1, 0 , int.MaxValue);
@@ -330,7 +372,7 @@ namespace PathPoint
                     mDrawPathPointList.AddRange(bezierPoints);
                 }
             }
-            else if(mDrawTypeProperty.intValue == (int)TPathDrawType.ThreeBezier)
+            else if(mPathwayTypeProperty.intValue == (int)TPathwayType.CubicBezier)
             {
                 var segmentNum = mSegmentProperty.intValue;
                 var maxPathPointIndex = Mathf.Clamp(mPathPointListProperty.arraySize - 1, 0, int.MaxValue);
@@ -455,8 +497,8 @@ namespace PathPoint
         private void ExportPathPointDatas()
         {
             CorrectPathPointPositions();
-            TPathPointUtilities.MakeSureExportFolderExist();
-            var pathType = (TPathType)mTypeProperty.intValue;
+            TPathUtilities.MakeSureExportFolderExist();
+            var pathType = (TPathType)mPathTypeProperty.intValue;
             if(pathType == TPathType.Normal)
             {
                 ExportNormalPathPointDatas();
@@ -479,7 +521,7 @@ namespace PathPoint
             //----------- | ---------- | -------------
             //      0     ,    1;0     ,      0
             //      1     ,    10;0    ,      1
-            var exportFileFullPath = TPathPointUtilities.GetExportFileFullPathByType(TPathType.Normal);
+            var exportFileFullPath = TPathUtilities.GetExportFileFullPathByType(TPathType.Normal);
             using (var st = new StreamWriter(exportFileFullPath))
             {
                 for (int i = 0, length = mPathPointListProperty.arraySize - 1; i < length; i++)
@@ -493,6 +535,25 @@ namespace PathPoint
                 }
             }
             Debug.Log($"导出数据文件全路径:{exportFileFullPath}");
+        }
+
+        /// <summary>
+        /// 执行模拟移动
+        /// </summary>
+        private void DoSimulationMove()
+        {
+            if(mSimulationMoveGO == null)
+            {
+                Debug.LogError($"未设置任何有效模拟路点移动对象！");
+                return;
+            }
+            var simulationMoveAsset = AssetDatabase.GetAssetPath(mSimulationMoveGO);
+            if(simulationMoveAsset != null)
+            {
+                Debug.LogError($"不允许模拟本地Asset路点移动！");
+                return;
+            }
+
         }
     }
 }

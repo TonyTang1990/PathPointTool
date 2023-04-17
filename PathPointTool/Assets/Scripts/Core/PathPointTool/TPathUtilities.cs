@@ -1,5 +1,5 @@
 ﻿/*
- * Description:             TPathPointUtilities.cs
+ * Description:             TPathUtilities.cs
  * Author:                  TONYTANG
  * Create Date:             2023/04/11
  */
@@ -13,18 +13,32 @@ using UnityEngine;
 namespace PathPoint
 {
     /// <summary>
-    /// TPathPointUtilities.cs
-    /// 路点静态工具类
+    /// TPathUtilities.cs
+    /// 路线静态工具类
     /// </summary>
-    public static class TPathPointUtilities
+    public static class TPathUtilities
     {
+        /// <summary>
+        /// TPathTweener的UID
+        /// </summary>
+        private static int PathTweenerUID = 0;
+
+        /// <summary>
+        /// 获取下一个有效TPathTweener UID
+        /// </summary>
+        /// <returns></returns>
+        public static int GetNextPathTweenerUID()
+        {
+            return PathTweenerUID;
+        }
+
         /// <summary>
         /// 获取导出目录全路径
         /// </summary>
         /// <returns></returns>
         public static string GetExportFolderFullPath()
         {
-            return PathUtilities.GetAssetFullPath(TPathPointConst.ExportFolderProjectRelativePath);
+            return PathUtilities.GetAssetFullPath(TPathConst.ExportFolderProjectRelativePath);
         }
 
         /// <summary>
@@ -57,6 +71,32 @@ namespace PathPoint
             var exportFolderFullPath = GetExportFolderFullPath();
             var fileName = GetExportFileNameByType(pathType);
             return Path.Combine(exportFolderFullPath, fileName);
+        }
+
+        /// <summary>
+        /// 获取指定路线类型的分段顶点数量
+        /// </summary>
+        /// <param name="pathwayType"></param>
+        /// <returns></returns>
+        public static int GetSegmentPointNumByType(TPathwayType pathwayType)
+        {
+            if(pathwayType == TPathwayType.Line)
+            {
+                return 2;
+            }
+            else if(pathwayType == TPathwayType.Bezier)
+            {
+                return 3;
+            }
+            else if(pathwayType == TPathwayType.CubicBezier)
+            {
+                return 4;
+            }
+            else
+            {
+                Debug.LogError($"不支持的路线类型:{pathwayType.ToString()}，获取路线分段顶点数量失败！");
+                return 0;
+            }
         }
     }
 }

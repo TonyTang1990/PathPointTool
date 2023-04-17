@@ -1,5 +1,5 @@
 ﻿/*
- * Description:             TPathPointSystem.cs
+ * Description:             TPathData.cs
  * Author:                  TONYTANG
  * Create Date:             2023/04/09
  */
@@ -11,11 +11,11 @@ using UnityEngine;
 namespace PathPoint
 {
     /// <summary>
-    /// TPathPointSystem.cs
-    /// 路点系统组件
+    /// TPathData.cs
+    /// 路线数据编辑组件
     /// </summary>
     [ExecuteInEditMode]
-    public class TPathPointSystem : MonoBehaviour
+    public class TPathData : MonoBehaviour
     {
         /// <summary>
         /// 路点父节点名
@@ -26,13 +26,25 @@ namespace PathPoint
         /// 路线类型
         /// </summary>
         [Header("路线类型")]
-        public TPathType Type = TPathType.Normal;
+        public TPathType PathType = TPathType.Normal;
 
         /// <summary>
         /// 路线绘制类型
         /// </summary>
         [Header("路线绘制类型")]
-        public TPathDrawType DrawType = TPathDrawType.Line;
+        public TPathwayType PathwayType = TPathwayType.Line;
+
+        /// <summary>
+        /// 是否循环
+        /// </summary>
+        [Header("是否循环")]
+        public bool IsLoop = false;
+
+        /// <summary>
+        /// 持续时长
+        /// </summary>
+        [Header("持续时长")]
+        public float Duration = 10f;
 
         /// <summary>
         /// 路点起始位置
