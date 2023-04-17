@@ -7,6 +7,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace PathPoint
@@ -63,14 +64,14 @@ namespace PathPoint
             UnregisterEditorUpdate();
         }
 
-        [InitializedOnLoadMethod]
+        [InitializeOnLoadMethod]
         private static void OnInitializedOnLoadMethod()
         {
-            Debug.Log($"static PathTweenerManager.OnInitializedOnLoadMethod()");
-            var pathTweenerManager = GameObject.FindObjectOfType<pathTweenerManager>();
+            Debug.Log($"static TPathTweenerManager.OnInitializedOnLoadMethod()");
+            var pathTweenerManager = GameObject.FindObjectOfType<TPathTweenerManager>();
             if(pathTweenerManager != null)
             {
-                Debug.Log($"找回场景里PathTweenerManager单例组件对象！");
+                Debug.Log($"找回场景里TPathTweenerManager单例组件对象！");
                 mSingleton = pathTweenerManager;
                 mSingleton.MembersInit();
                 RegisterEditorUpdate();
@@ -80,10 +81,10 @@ namespace PathPoint
         /// <summary>
         /// 注入Editor Update
         /// </summary>
-        private static void ReigsterEditorUpdate()
+        private static void RegisterEditorUpdate()
         {
             EditorApplication.update += EditorUpdate;
-            Debug.Log($"PathTweenerManager注入EditorApplication.update");
+            Debug.Log($"TPathTweenerManager注入EditorApplication.update");
         }
 
         /// <summary>
@@ -92,7 +93,7 @@ namespace PathPoint
         private static void UnregisterEditorUpdate()
         {
             EditorApplication.update -= EditorUpdate;
-            Debug.Log($"PathTweenerManager取消注入EditorApplication.update");
+            Debug.Log($"TPathTweenerManager取消注入EditorApplication.update");
         }
 
         /// <summary>
@@ -154,7 +155,7 @@ namespace PathPoint
         private void Update()
         {
             var deltaTime = Time.deltaTime;
-            for (int i = mTPathTweenerList.Count - 1; i >= 0; i++)
+            for (int i = mTPathTweenerList.Count - 1; i >= 0; i--)
             {
                 mTPathTweenerList[i].Update(deltaTime);
             }
@@ -174,7 +175,8 @@ namespace PathPoint
         /// <returns></returns>
         public TPathTweener DoPathTweenByPoints(Transform target, IEnumerable<Vector3> points, float duration,
                                                 bool isLoop = false, bool updateFoward = false, Action completeCB = null,
-                                                TPathwayType pathwayType = TPathwayType.Line, int segment = 10)
+                                                TPathwayType pathwayType = TPathwayType.Line,
+                                                EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {
             if (target == null)
             {
@@ -182,7 +184,7 @@ namespace PathPoint
                 return null;
             }
             var tpathTweener = ObjectPool.Singleton.pop<TPathTweener>();
-            tpathTweener.InitByPoints(target, points, duration, pathwayType, isLoop, updateFoward, completeCB, segment);
+            tpathTweener.InitByPoints(target, points, duration, pathwayType, isLoop, updateFoward, completeCB, ease, segment);
             AddTPathTPathTweener(tpathTweener);
             return tpathTweener;
         }
@@ -201,7 +203,8 @@ namespace PathPoint
         /// <returns></returns>
         public TPathTweener DoPathTweenByTransforms(Transform target, IEnumerable<Transform> transforms, float duration,
                                                     bool isLoop = false, bool updateFoward = false, Action completeCB = null,
-                                                    TPathwayType pathwayType = TPathwayType.Line, int segment = 10)
+                                                    TPathwayType pathwayType = TPathwayType.Line,
+                                                    EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {
             if (target == null)
             {
@@ -209,7 +212,7 @@ namespace PathPoint
                 return null;
             }
             var tpathTweener = ObjectPool.Singleton.pop<TPathTweener>();
-            tpathTweener.InitByTransforms(target, transforms, duration, pathwayType, isLoop, updateFoward, completeCB, segment);
+            tpathTweener.InitByTransforms(target, transforms, duration, pathwayType, isLoop, updateFoward, completeCB, ease, segment);
             AddTPathTPathTweener(tpathTweener);
             return tpathTweener;
         }
@@ -232,6 +235,7 @@ namespace PathPoint
                 Debug.LogError($"不允许重复添加相同路点缓动UID:{tpathTweener.UID}的对象，添加失败！");
                 return false;
             }
+            mTPathTweenerList.Add(tpathTweener);
             return true;
         }
 

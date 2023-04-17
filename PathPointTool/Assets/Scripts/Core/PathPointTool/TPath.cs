@@ -27,7 +27,16 @@ namespace PathPoint
         }
 
         /// <summary>
-        /// 分段数量
+        /// 缓动类型
+        /// </summary>
+        public EasingFunction.Ease Ease
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 每段顶点细分数量
         /// </summary>
         public int Segment
         {
@@ -74,6 +83,7 @@ namespace PathPoint
             PathPointList = new List<Vector3>();
             SegmentList = new List<TSegment>();
             PathwayType = TPathwayType.Line;
+            Ease = EasingFunction.Ease.Linear;
             Segment = 15;
             Length = 0f;
             mPointDistanceList = new List<float>();
@@ -95,8 +105,9 @@ namespace PathPoint
         private void Reset()
         {
             PathPointList.Clear();
-            SegmentList.Clear();
+            RecyleAllSegments();
             PathwayType = TPathwayType.Line;
+            Ease = EasingFunction.Ease.Linear;
             Segment = 15;
             Length = 0f;
             mPointDistanceList.Clear();
@@ -107,13 +118,17 @@ namespace PathPoint
         /// </summary>
         /// <param name="points"></param>
         /// <param name="pathwayType"></param>
+        /// <param name="ease"></param>
         /// <param name="segment"></param>
-        public void InitByPoints(IEnumerable<Vector3> points, TPathwayType pathwayType = TPathwayType.Line, int segment = 10)
+        public void InitByPoints(IEnumerable<Vector3> points, TPathwayType pathwayType = TPathwayType.Line,
+                                    EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {
             PathPointList.Clear();
             PathPointList.AddRange(points);
             PathwayType = pathwayType;
+            Ease = ease;
             Segment = segment;
+            UpdatePathDatas();
         }
 
         /// <summary>
@@ -121,8 +136,10 @@ namespace PathPoint
         /// </summary>
         /// <param name="transforms"></param>
         /// <param name="pathwayType"></param>
+        /// <param name="ease"></param>
         /// <param name="segment"></param>
-        public void InitByTransforms(IEnumerable<Transform> transforms, TPathwayType pathwayType = TPathwayType.Line, int segment = 10)
+        public void InitByTransforms(IEnumerable<Transform> transforms, TPathwayType pathwayType = TPathwayType.Line,
+                                        EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {
             PathPointList.Clear();
             var transformIndex = -1;
@@ -137,7 +154,9 @@ namespace PathPoint
                 PathPointList.Add(transform.position);
             }
             PathwayType = pathwayType;
+            Ease = ease;
             Segment = segment;
+            UpdatePathDatas();
         }
 
         /// <summary>
@@ -250,26 +269,36 @@ namespace PathPoint
         /// </summary>
         private void UpdateSegmentDatas()
         {
-            for(int i = SegmentList.Count - 1; i >= 0; i--)
-            {
-                ObjectPool.Singleton.push<TSegment>(SegmentList[i]);
-                SegmentList.RemoveAt(i);
-            }
+            RecyleAllSegments();
             var segmentPointNum = TPathUtilities.GetSegmentPointNumByType(PathwayType);
             var pointStep = Mathf.Clamp(segmentPointNum - 1, 0, Int32.MaxValue);
             var segmentLength = 0f;
+            var maxPointNum = Mathf.Clamp(PathPointList.Count - 1, 0, Int32.MaxValue);
             for (int i = 0, length = PathPointList.Count; i < length; i+= pointStep)
             {
                 segmentLength = 0f;
-                for(int j = i, length2 = i + pointStep - 1; j < length2; j++)
+                for(int j = i, length2 = i + pointStep; j < length2; j++)
                 {
-                    var pointDistance = GetPointDistanceByIndex(j);
+                    var pointDistanceIndex = Mathf.Clamp(j, 0, maxPointNum);
+                    var pointDistance = GetPointDistanceByIndex(pointDistanceIndex);
                     segmentLength += pointDistance;
                 }
                 var segment = ObjectPool.Singleton.pop<TSegment>();
                 segment.Init(i, segmentLength, PathwayType);
                 SegmentList.Add(segment);
             }
+        }
+
+        /// <summary>
+        /// 回收所有分段数据
+        /// </summary>
+        private void RecyleAllSegments()
+        {
+            for (int i = 0, length = SegmentList.Count; i < length; i++)
+            {
+                ObjectPool.Singleton.push<TSegment>(SegmentList[i]);
+            }
+            SegmentList.Clear();
         }
 
         /// <summary>
@@ -304,7 +333,9 @@ namespace PathPoint
         /// <returns></returns>
         private bool CheckSegmentNumValidation()
         {
-            // 分段数据要 = Mathf.CellToInt((路点数量 - 1) /  (N - 1))
+            // 路点数量为0，分段数量为0
+            // 路点数量为1，分段数量为1
+            // 路点数量>1，分段数量 = Mathf.CellToInt((路点数量 - 1) /  (N(Bezier曲线的顶点数) - 1))
             var pointNum = PathPointList.Count;
             var segmentNum = SegmentList.Count;
             if (pointNum == 0)
@@ -420,9 +451,12 @@ namespace PathPoint
                 return;
             }
             t = Mathf.Clamp01(t);
+            // 缓动公式对路线插值的影响
+            var easeFunc = EasingFunction.GetEasingFunction(Ease);
+            t = easeFunc(0, 1, t);
             var distance = t * Length;
             segment = SegmentList[0];
-            for (int i = 0, length = SegmentList.Count; i < length; i++)
+            for (int i = 0, length = SegmentList.Count - 1; i < length; i++)
             {
                 distance -= SegmentList[i].Length;
                 segment = SegmentList[i];

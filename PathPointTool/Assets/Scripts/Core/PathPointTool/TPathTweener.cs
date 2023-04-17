@@ -103,12 +103,6 @@ namespace PathPoint
         public TPathTweener()
         {
             UID = TPathUtilities.GetNextPathTweenerUID();
-            IsLoop = false;
-            Duration = 0f;
-            UpdateForward = false;
-            mTimePassed = 0f;
-            IsPaused = false;
-
         }
 
         public void OnCreate()
@@ -126,11 +120,18 @@ namespace PathPoint
         /// </summary>
         private void Reset()
         {
+            Target = null;
+            if(mPath != null)
+            {
+                ObjectPool.Singleton.push<TPath>(mPath);
+            }
+            mPath = null;
             IsLoop = false;
             Duration = 0f;
             UpdateForward = false;
             mTimePassed = 0f;
             IsPaused = false;
+            mCompleteCB = null;
         }
 
         /// <summary>
@@ -143,19 +144,20 @@ namespace PathPoint
         /// <param name="isLoop"></param>
         /// <param name="completeCB"></param>
         /// <param name="updateForward"></param>
-        /// <param name="pathType"></param>
+        /// <param name="ease"></param>
         /// <param name="segment"></param>
         public void InitByPoints(Transform target, IEnumerable<Vector3> points, float duration,
                                     TPathwayType pathwayType = TPathwayType.Line, bool isLoop = false,
-                                        Action completeCB = null, bool updateForward = false, int segment = 10)
+                                    bool updateForward = false, Action completeCB = null,
+                                    EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {
             Target = target;
             mPath = ObjectPool.Singleton.pop<TPath>();
-            mPath.InitByPoints(points, pathwayType, segment);
+            mPath.InitByPoints(points, pathwayType, ease, segment);
             Duration = duration;
             IsLoop = isLoop;
-            mCompleteCB = completeCB;
             UpdateForward = updateForward;
+            mCompleteCB = completeCB;
         }
 
         /// <summary>
@@ -171,15 +173,16 @@ namespace PathPoint
         /// <param name="segment"></param>
         public void InitByTransforms(Transform target, IEnumerable<Transform> transforms, float duration,
                                         TPathwayType pathwayType = TPathwayType.Line, bool isLoop = false,
-                                        bool updateForward = false, Action completeCB = null, int segment = 10)
+                                        bool updateForward = false, Action completeCB = null,
+                                        EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {
             Target = target;
             mPath = ObjectPool.Singleton.pop<TPath>();
-            mPath.InitByTransforms(transforms, pathwayType, segment);
+            mPath.InitByTransforms(transforms, pathwayType, ease, segment);
             Duration = duration;
             IsLoop = isLoop;
-            mCompleteCB = completeCB;
             UpdateForward = updateForward;
+            mCompleteCB = completeCB;
         }
 
         /// <summary>
@@ -253,8 +256,11 @@ namespace PathPoint
             var oldPosition = Target.position;
             var newPosition = mPath.GetPointAt(t);
             Target.position = newPosition;
-            var newForward = newPosition - oldPosition;
-            Target.forward = newForward;
+            if(UpdateForward)
+            {
+                var newForward = newPosition - oldPosition;
+                Target.forward = newForward;
+            }
         }
 
         /// <summary>
@@ -264,7 +270,7 @@ namespace PathPoint
         {
             if(mCompleteCB != null)
             {
-                mCompleteCB = null;
+                mCompleteCB();
             }
             TPathTweenerManager.Singleton.RemovePathTween(this);
         }

@@ -35,10 +35,22 @@ namespace PathPoint
         public TPathwayType PathwayType = TPathwayType.Line;
 
         /// <summary>
+        /// 缓动类型
+        /// </summary>
+        [Header("缓动类型")]
+        public EasingFunction.Ease Ease = EasingFunction.Ease.Linear;
+
+        /// <summary>
         /// 是否循环
         /// </summary>
         [Header("是否循环")]
         public bool IsLoop = false;
+
+        /// <summary>
+        /// 是否更新朝向
+        /// </summary>
+        [Header("是否更新朝向")]
+        public bool UpdateForward = false;
 
         /// <summary>
         /// 持续时长
@@ -59,9 +71,9 @@ namespace PathPoint
         public float PathPointGap = 1;
 
         /// <summary>
-        /// 分段数量
+        /// 每段顶点细分数量
         /// </summary>
-        [Header("分段数量")]
+        [Header("每段顶点细分数量")]
         public int Segment = 15;
 
         /// <summary>
@@ -170,8 +182,12 @@ namespace PathPoint
             var pathPointPosList = new List<Vector3>();
             foreach (var pathPoint in PathPointList)
             {
-
+                if(pathPoint != null)
+                {
+                    pathPointPosList.Add(pathPoint.position);
+                }
             }
+            return pathPointPosList;
         }
 
         /// <summary>

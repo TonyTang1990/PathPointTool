@@ -33,20 +33,23 @@ namespace PathPoint
         }
 
         /// <summary>
-        /// 获取导出目录全路径
+        /// 获取指定路点路线类型的导出目录全路径
         /// </summary>
+        /// <param name="pathType"></param>
         /// <returns></returns>
-        public static string GetExportFolderFullPath()
+        public static string GetExportFolderFullPath(TPathType pathType)
         {
-            return PathUtilities.GetAssetFullPath(TPathConst.ExportFolderProjectRelativePath);
+            var baseExportFolderFullPath = PathUtilities.GetAssetFullPath(TPathConst.ExportFolderProjectRelativePath);
+            return Path.Combine(baseExportFolderFullPath, pathType.ToString());
         }
 
         /// <summary>
         /// 确保导出目录存在
         /// </summary>
-        public static void MakeSureExportFolderExist()
+        /// <param name="pathType"></param>
+        public static void MakeSureExportFolderExist(TPathType pathType)
         {
-            var exportFolderFullPath = GetExportFolderFullPath();
+            var exportFolderFullPath = GetExportFolderFullPath(pathType);
             FolderUtilities.CheckAndCreateSpecificFolder(exportFolderFullPath);
         }
 
@@ -68,7 +71,7 @@ namespace PathPoint
         /// <returns></returns>
         public static string GetExportFileFullPathByType(TPathType pathType)
         {
-            var exportFolderFullPath = GetExportFolderFullPath();
+            var exportFolderFullPath = GetExportFolderFullPath(pathType);
             var fileName = GetExportFileNameByType(pathType);
             return Path.Combine(exportFolderFullPath, fileName);
         }
