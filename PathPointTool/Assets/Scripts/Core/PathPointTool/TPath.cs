@@ -36,7 +36,7 @@ namespace PathPoint
         }
 
         /// <summary>
-        /// 每段顶点细分数量
+        /// 每段细分数量
         /// </summary>
         public int Segment
         {
@@ -78,6 +78,14 @@ namespace PathPoint
         /// </summary>
         private List<float> mPointDistanceList;
 
+        /// <summary>
+        /// 每一段细分顶点数组Map<段数索引(从1开始), 顶点数组>
+        /// Note:
+        /// 此数据采取跟随分段数据更新而清除
+        /// 访问获取指定分段索引数据时采取实时计算并缓存的方式
+        /// </summary>
+        private Dictionary<int, Vector3[]> mSegmentPointsMap;
+
         public TPath()
         {
             PathPointList = new List<Vector3>();
@@ -87,6 +95,7 @@ namespace PathPoint
             Segment = 15;
             Length = 0f;
             mPointDistanceList = new List<float>();
+            mSegmentPointsMap = new Dictionary<int, Vector3[]>();
         }
 
         public void OnCreate()
@@ -111,6 +120,7 @@ namespace PathPoint
             Segment = 15;
             Length = 0f;
             mPointDistanceList.Clear();
+            mSegmentPointsMap.Clear();
         }
 
         /// <summary>
@@ -220,6 +230,31 @@ namespace PathPoint
         }
 
         /// <summary>
+        /// 获取指定比例t(0-1)所在分段索引(从0开始)
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public int GetSegmentIndexByRatio(float t)
+        {
+            var segmentNum = SegmentList.Count;
+            if(segmentNum == 0)
+            {
+                Debug.Log($"分段数量为0，获取不到指定比例t的所在分段索引！");
+                return -1;
+            }
+            t = Mathf.Clamp01(t);
+            for(int i = 0; i < segmentNum; i++)
+            {
+                if(t >= SegmentList[i].FirstPointPathRatio && t <= SegmentList[i].LastPointPathRatio)
+                {
+                    return i;
+                }
+            }
+            Debug.LogError($"找不到比例:{t}对应的分段索引，理论上不可能！");
+            return -1;
+        }
+
+        /// <summary>
         /// 获取指定顶点索引到下一个顶点索引的距离
         /// </summary>
         /// <param name="pointIndex"></param>
@@ -270,23 +305,40 @@ namespace PathPoint
         private void UpdateSegmentDatas()
         {
             RecyleAllSegments();
+            var pointNum = PathPointList.Count;
+            if(pointNum == 0)
+            {
+                return;
+            }
+            else if(pointNum == 1)
+            {
+                var segment = ObjectPool.Singleton.pop<TSegment>();
+                segment.Init(0, 0, 1, 1, PathwayType);
+                SegmentList.Add(segment);
+                return;
+            }
             var segmentPointNum = TPathUtilities.GetSegmentPointNumByType(PathwayType);
             var pointStep = Mathf.Clamp(segmentPointNum - 1, 0, Int32.MaxValue);
             var segmentLength = 0f;
             var maxPointNum = Mathf.Clamp(PathPointList.Count - 1, 0, Int32.MaxValue);
+            var distanceAccumulation = 0f;
             for (int i = 0, length = PathPointList.Count; i < length; i+= pointStep)
             {
                 segmentLength = 0f;
-                for(int j = i, length2 = i + pointStep; j < length2; j++)
+                var firstPointPathRatio = distanceAccumulation / Length;
+                for (int j = i, length2 = i + pointStep; j < length2; j++)
                 {
                     var pointDistanceIndex = Mathf.Clamp(j, 0, maxPointNum);
                     var pointDistance = GetPointDistanceByIndex(pointDistanceIndex);
                     segmentLength += pointDistance;
+                    distanceAccumulation += pointDistance;
                 }
+                var lastPointPathRatio = distanceAccumulation / Length;
                 var segment = ObjectPool.Singleton.pop<TSegment>();
-                segment.Init(i, segmentLength, PathwayType);
+                segment.Init(i, segmentLength, firstPointPathRatio, lastPointPathRatio, PathwayType);
                 SegmentList.Add(segment);
             }
+            mSegmentPointsMap.Clear();
         }
 
         /// <summary>
@@ -310,7 +362,7 @@ namespace PathPoint
         {
             if(PathwayType == TPathwayType.Line)
             {
-                return GetLinePoinAt(t);
+                return GetLinerPoinAt(t);
             }
             else if(PathwayType == TPathwayType.Bezier)
             {
@@ -325,6 +377,105 @@ namespace PathPoint
                 Debug.LogError($"不支持的路线类型:{PathwayType.ToString()}，获取指定比例路点位置失败！");
                 return Vector3.zero;
             }
+        }
+
+        /// <summary>
+        /// 获取指定分段索引(从0开始)的细分顶点数组
+        /// </summary>
+        /// <param name="segmentIndex">分段索引(从0开始)</param>
+        /// <returns></returns>
+        public Vector3[] GetSubPointsBySegmentIndex(int segmentIndex)
+        {
+            var segmentNum = SegmentList.Count;
+            if(segmentNum == 0)
+            {
+                Debug.LogError($"没有有效分段数据，获取指定分段索引:{segmentIndex}的细分顶点数组失败！");
+                return null;
+            }
+            if (segmentIndex < 0 || segmentIndex >= segmentNum)
+            {
+                Debug.LogError($"分段索引:{segmentIndex}不在有效范围内:0-{segmentNum - 1}，获取指定分段索引的细分顶点数组失败！");
+                return null;
+            }
+            Vector3[] subPoints;
+            if(!mSegmentPointsMap.TryGetValue(segmentIndex, out subPoints))
+            {
+                var maxPointIndex = PathPointList.Count - 1;
+                var firstPointIndex = SegmentList[segmentIndex].StartPointIndex;
+                var secondPointIndex = Mathf.Clamp(firstPointIndex + 1, 0, maxPointIndex);
+                if(PathwayType == TPathwayType.Line)
+                {
+                    // 直线没必要细分过多的点，这里强制直线每段细分数为1
+                    subPoints = BezierUtilities.GetLinerList(PathPointList[firstPointIndex], PathPointList[secondPointIndex], 1);
+                }
+                else if(PathwayType == TPathwayType.Bezier)
+                {
+                    var thirdPointIndex = Mathf.Clamp(firstPointIndex + 2, 0, maxPointIndex);
+                    subPoints = BezierUtilities.GetBeizerList(PathPointList[firstPointIndex], PathPointList[secondPointIndex],
+                                                               PathPointList[thirdPointIndex], Segment);
+                }
+                else if(PathwayType == TPathwayType.CubicBezier)
+                {
+                    var thirdPointIndex = Mathf.Clamp(firstPointIndex + 2, 0, maxPointIndex);
+                    var fourthPointIndex = Mathf.Clamp(firstPointIndex + 3, 0, maxPointIndex);
+                    subPoints = BezierUtilities.GetCubicBeizerList(PathPointList[firstPointIndex], PathPointList[secondPointIndex],
+                                                                    PathPointList[thirdPointIndex], PathPointList[fourthPointIndex], Segment);
+                }
+                else
+                {
+                    Debug.LogError($"不支持的路线类型:{PathwayType.ToString()},获取指定分段索引的细分顶点数组失败！");
+                }
+                if (subPoints != null)
+                {
+                    mSegmentPointsMap.Add(segmentIndex, subPoints);
+                }
+            }
+            return subPoints;
+        }
+
+        /// <summary>
+        /// 获取指定分段索引的细分顶点距离(目前用于获取计算总的LineRenderer绘制长度)
+        /// </summary>
+        /// <param name="segmentIndex"></param>
+        /// <returns></returns>
+        public float GetSegmentSubPointLengthByIndex(int segmentIndex)
+        {
+            var subPoints = GetSubPointsBySegmentIndex(segmentIndex);
+            if(subPoints == null)
+            {
+                return 0f;
+            }
+            var subPointCount = subPoints.Length;
+            if(subPointCount == 1)
+            {
+                return 0f;
+            }
+            var subPointLength = 0f;
+            for(int i = 0, length = subPointCount - 1; i < length; i++)
+            {
+                subPointLength += Vector3.Distance(subPoints[i], subPoints[i + 1]);
+            }
+            return subPointLength;
+        }
+
+        /// <summary>
+        /// 获取所有分段细分顶点的总长度
+        /// </summary>
+        /// <returns></returns>
+        public float GetTotalSegmentSubPointLength()
+        {
+            var segmentNum = SegmentList.Count;
+            if(segmentNum == 0)
+            {
+                return 0f;
+            }
+            var totalLength = 0f;
+            for(int i = 0; i < segmentNum; i++)
+            {
+                var segmentSubPointLength = GetSegmentSubPointLengthByIndex(i);
+                totalLength += segmentSubPointLength;
+            }
+            return totalLength;
         }
 
         /// <summary>
@@ -361,7 +512,7 @@ namespace PathPoint
         /// </summary>
         /// <param name="t"></param>
         /// <returns></returns>
-        private Vector3 GetLinePoinAt(float t)
+        private Vector3 GetLinerPoinAt(float t)
         {
             var pointNum = PathPointList.Count;
             var maxPointIndex = pointNum - 1;
@@ -372,9 +523,9 @@ namespace PathPoint
             {
                 return Vector3.zero;
             }
-            var firstPointIndex = currentUnderSegment.PointStartIndex;
-            var secondPointIndex = Mathf.Clamp(currentUnderSegment.PointStartIndex + 1, 0, maxPointIndex);
-            return Vector3.Lerp(PathPointList[firstPointIndex], PathPointList[secondPointIndex], currentUnderSegmentPercent);
+            var firstPointIndex = currentUnderSegment.StartPointIndex;
+            var secondPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 1, 0, maxPointIndex);
+            return BezierUtilities.CaculateLinerPoint(PathPointList[firstPointIndex], PathPointList[secondPointIndex], currentUnderSegmentPercent);
         }
 
         /// <summary>
@@ -393,9 +544,9 @@ namespace PathPoint
             {
                 return Vector3.zero;
             }
-            var firstPointIndex = currentUnderSegment.PointStartIndex;
-            var secondPointIndex = Mathf.Clamp(currentUnderSegment.PointStartIndex + 1, 0, maxPointIndex);
-            var thirdPointIndex = Mathf.Clamp(currentUnderSegment.PointStartIndex + 2, 0, maxPointIndex);
+            var firstPointIndex = currentUnderSegment.StartPointIndex;
+            var secondPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 1, 0, maxPointIndex);
+            var thirdPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 2, 0, maxPointIndex);
             return BezierUtilities.CaculateBezierPoint(PathPointList[firstPointIndex], 
                                                        PathPointList[secondPointIndex],
                                                        PathPointList[thirdPointIndex],
@@ -418,10 +569,10 @@ namespace PathPoint
             {
                 return Vector3.zero;
             }
-            var firstPointIndex = currentUnderSegment.PointStartIndex;
-            var secondPointIndex = Mathf.Clamp(currentUnderSegment.PointStartIndex + 1, 0, maxPointIndex);
-            var thirdPointIndex = Mathf.Clamp(currentUnderSegment.PointStartIndex + 2, 0, maxPointIndex);
-            var fourthPointIndex = Mathf.Clamp(currentUnderSegment.PointStartIndex + 3, 0, maxPointIndex);
+            var firstPointIndex = currentUnderSegment.StartPointIndex;
+            var secondPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 1, 0, maxPointIndex);
+            var thirdPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 2, 0, maxPointIndex);
+            var fourthPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 3, 0, maxPointIndex);
             return BezierUtilities.CaculateCubicBezierPoint(PathPointList[firstPointIndex],
                                                             PathPointList[secondPointIndex],
                                                             PathPointList[thirdPointIndex],

@@ -18,6 +18,22 @@ public static class BezierUtilities
     // 1. 高阶Bezier曲线计算复杂，推荐用N个3阶Bezier曲线模拟
 
     /// <summary>
+    /// 根据t(0-1)计算一阶Bezier曲线上面对应的点
+    /// </summary>
+    /// <param name="p0">第一个点</param>
+    /// <param name="p1">第二个点</param>
+    /// <param name="t">插值(0-1)</param>
+    /// <returns></returns>
+    public static Vector3 CaculateLinerPoint(Vector3 p0, Vector3 p1, float t)
+    {
+        // 原始公式:
+        /*
+        return (1 - t) * p0 + t * p1;
+        */
+        return (1 - t) * p0 + t * p1;
+    }
+
+    /// <summary>
     /// 根据t(0-1)计算二阶贝塞尔曲线上面对应的点
     /// </summary>
     /// <param name="p0">第一个点</param>
@@ -69,13 +85,32 @@ public static class BezierUtilities
         return uuu * p0 + 3 * uu * t * p1 + 3 * tt * u * p2 + ttt * p3;
     }
 
+    /// <summary>
+    /// 获取存储的一阶Bezier曲线细分顶点的数组
+    /// </summary>
+    /// <param name="p0">第一个点</param>
+    /// <param name="p1">第二个点</param>
+    /// <param name="segmentNum">细分段数</param>
+    /// <returns>存储贝塞尔曲线点的数组</returns>
+    public static Vector3[] GetLinerList(Vector3 p0, Vector3 p1, int segmentNum)
+    {
+        var pathPointNum = segmentNum + 1;
+        Vector3[] path = new Vector3[pathPointNum];
+        for (int i = 0; i < pathPointNum; i++)
+        {
+            float t = i / (float)segmentNum;
+            Vector3 pathPoint = CaculateLinerPoint(p0, p1, t);
+            path[i] = pathPoint;
+        }
+        return path;
+    }
 
     /// <summary>
-    /// 获取存储的二次贝塞尔曲线点的数组
+    /// 获取存储的二次贝塞尔曲线细分顶点的数组
     /// </summary>
-    /// <param name="p0"></param>起始点
-    /// <param name="p1"></param>控制点
-    /// <param name="p2"></param>目标点
+    /// <param name="p0">起始点</param>
+    /// <param name="p1">控制点</param>
+    /// <param name="p2">目标点</param>
     /// <param name="segmentNum">细分段数</param>
     /// <returns>存储贝塞尔曲线点的数组</returns>
     public static Vector3[] GetBeizerList(Vector3 p0, Vector3 p1, Vector3 p2, int segmentNum)
@@ -89,16 +124,15 @@ public static class BezierUtilities
             path[i] = pathPoint;
         }
         return path;
-
     }
 
     /// <summary>
-    /// 获取存储的三次贝塞尔曲线点的数组
+    /// 获取存储的三次贝塞尔曲线细分顶点的数组
     /// </summary>
-    /// <param name="p0"></param>起始点
-    /// <param name="p1"></param>控制点1
-    /// <param name="p2"></param>控制点2
-    /// <param name="p3"></param>目标点
+    /// <param name="p0">起始点</param>
+    /// <param name="p1">控制点1</param>
+    /// <param name="p2">控制点2</param>
+    /// <param name="p3">目标点</param>
     /// <param name="segmentNum">细分段数</param>
     /// <returns>存储贝塞尔曲线点的数组</returns>
     public static Vector3[] GetCubicBeizerList(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int segmentNum)

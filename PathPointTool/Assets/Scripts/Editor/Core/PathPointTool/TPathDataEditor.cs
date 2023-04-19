@@ -368,67 +368,98 @@ namespace PathPoint
         /// </summary>
         private void UpdateDrawDatas()
         {
-            mDrawPathPointList.Clear();
             if(mPathwayTypeProperty.intValue == (int)TPathwayType.Line)
             {
-                for(int i = 0, length = mPathPointListProperty.arraySize; i < length; i++)
-                {
-                    var pathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(i);
-                    if(pathPointProperty.objectReferenceValue != null)
-                    {
-                        var pathPointTransform = pathPointProperty.objectReferenceValue as Transform;
-                        mDrawPathPointList.Add(pathPointTransform.position);
-                    }
-                }
+                UpdatePathDrawLineDatas();
             }
             else if(mPathwayTypeProperty.intValue == (int)TPathwayType.Bezier)
             {
-                var segmentNum = mSegmentProperty.intValue;
-                var maxPathPointIndex = Mathf.Clamp(mPathPointListProperty.arraySize - 1, 0 , int.MaxValue);
-                for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i+=2)
-                {
-                    if(i == maxPathPointIndex)
-                    {
-                        continue;
-                    }
-                    var firstIndex = i;
-                    var secondIndex = Mathf.Clamp(i + 1, 0, maxPathPointIndex);
-                    var thirdIndex = Mathf.Clamp(i + 2, 0, maxPathPointIndex);
-                    var firstProperty = mPathPointListProperty.GetArrayElementAtIndex(firstIndex);
-                    var secondProperty = mPathPointListProperty.GetArrayElementAtIndex(secondIndex);
-                    var thirdProperty = mPathPointListProperty.GetArrayElementAtIndex(thirdIndex);
-                    var firstTransform = firstProperty.objectReferenceValue as Transform;
-                    var secondTransform = secondProperty.objectReferenceValue as Transform;
-                    var thirdTransform = thirdProperty.objectReferenceValue as Transform;
-                    var bezierPoints = BezierUtilities.GetBeizerList(firstTransform.position, secondTransform.position, thirdTransform.position, segmentNum);
-                    mDrawPathPointList.AddRange(bezierPoints);
-                }
+                UpdatePathDrawBezierDatas();
             }
             else if(mPathwayTypeProperty.intValue == (int)TPathwayType.CubicBezier)
             {
-                var segmentNum = mSegmentProperty.intValue;
-                var maxPathPointIndex = Mathf.Clamp(mPathPointListProperty.arraySize - 1, 0, int.MaxValue);
-                for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i += 3)
+                UpdatePathDrawCubicBezierDatas();
+            }
+            else
+            {
+                var pathWayType = (TPathwayType)mPathwayTypeProperty.intValue;
+                Debug.LogError($"不支持的路线类型:{pathWayType.ToString()}，更新绘制数据失败！");
+            }
+        }
+
+        /// <summary>
+        /// 更新线性绘制数据
+        /// </summary>
+        private void UpdatePathDrawLineDatas()
+        {
+            mDrawPathPointList.Clear();
+            for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i++)
+            {
+                var pathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(i);
+                if (pathPointProperty.objectReferenceValue != null)
                 {
-                    if(i == maxPathPointIndex)
-                    {
-                        continue;
-                    }
-                    var firstIndex = i;
-                    var secondIndex = Mathf.Clamp(i + 1, 0, maxPathPointIndex);
-                    var thirdIndex = Mathf.Clamp(i + 2, 0, maxPathPointIndex);
-                    var fourthIndex = Mathf.Clamp(i + 3, 0, maxPathPointIndex);
-                    var firstProperty = mPathPointListProperty.GetArrayElementAtIndex(firstIndex);
-                    var secondProperty = mPathPointListProperty.GetArrayElementAtIndex(secondIndex);
-                    var thirdProperty = mPathPointListProperty.GetArrayElementAtIndex(thirdIndex);
-                    var fourthProperty = mPathPointListProperty.GetArrayElementAtIndex(fourthIndex);
-                    var firstTransform = firstProperty.objectReferenceValue as Transform;
-                    var secondTransform = secondProperty.objectReferenceValue as Transform;
-                    var thirdTransform = thirdProperty.objectReferenceValue as Transform;
-                    var fourthTransform = fourthProperty.objectReferenceValue as Transform;
-                    var bezierPoints = BezierUtilities.GetCubicBeizerList(firstTransform.position, secondTransform.position, thirdTransform.position, fourthTransform.position, segmentNum);
-                    mDrawPathPointList.AddRange(bezierPoints);
+                    var pathPointTransform = pathPointProperty.objectReferenceValue as Transform;
+                    mDrawPathPointList.Add(pathPointTransform.position);
                 }
+            }
+        }
+
+        /// <summary>
+        /// 更新二阶Bezier绘制数据
+        /// </summary>
+        private void UpdatePathDrawBezierDatas()
+        {
+            mDrawPathPointList.Clear();
+            var segmentNum = mSegmentProperty.intValue;
+            var maxPathPointIndex = Mathf.Clamp(mPathPointListProperty.arraySize - 1, 0, int.MaxValue);
+            for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i += 2)
+            {
+                if (i == maxPathPointIndex)
+                {
+                    continue;
+                }
+                var firstIndex = i;
+                var secondIndex = Mathf.Clamp(i + 1, 0, maxPathPointIndex);
+                var thirdIndex = Mathf.Clamp(i + 2, 0, maxPathPointIndex);
+                var firstProperty = mPathPointListProperty.GetArrayElementAtIndex(firstIndex);
+                var secondProperty = mPathPointListProperty.GetArrayElementAtIndex(secondIndex);
+                var thirdProperty = mPathPointListProperty.GetArrayElementAtIndex(thirdIndex);
+                var firstTransform = firstProperty.objectReferenceValue as Transform;
+                var secondTransform = secondProperty.objectReferenceValue as Transform;
+                var thirdTransform = thirdProperty.objectReferenceValue as Transform;
+                var bezierPoints = BezierUtilities.GetBeizerList(firstTransform.position, secondTransform.position, thirdTransform.position, segmentNum);
+                mDrawPathPointList.AddRange(bezierPoints);
+            }
+        }
+
+        /// <summary>
+        /// 更新三阶Bezier绘制数据
+        /// </summary>
+        private void UpdatePathDrawCubicBezierDatas()
+        {
+            mDrawPathPointList.Clear();
+            var segmentNum = mSegmentProperty.intValue;
+            var maxPathPointIndex = Mathf.Clamp(mPathPointListProperty.arraySize - 1, 0, int.MaxValue);
+            for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i += 3)
+            {
+                if (i == maxPathPointIndex)
+                {
+                    continue;
+                }
+                var firstIndex = i;
+                var secondIndex = Mathf.Clamp(i + 1, 0, maxPathPointIndex);
+                var thirdIndex = Mathf.Clamp(i + 2, 0, maxPathPointIndex);
+                var fourthIndex = Mathf.Clamp(i + 3, 0, maxPathPointIndex);
+                var firstProperty = mPathPointListProperty.GetArrayElementAtIndex(firstIndex);
+                var secondProperty = mPathPointListProperty.GetArrayElementAtIndex(secondIndex);
+                var thirdProperty = mPathPointListProperty.GetArrayElementAtIndex(thirdIndex);
+                var fourthProperty = mPathPointListProperty.GetArrayElementAtIndex(fourthIndex);
+                var firstTransform = firstProperty.objectReferenceValue as Transform;
+                var secondTransform = secondProperty.objectReferenceValue as Transform;
+                var thirdTransform = thirdProperty.objectReferenceValue as Transform;
+                var fourthTransform = fourthProperty.objectReferenceValue as Transform;
+                var bezierPoints = BezierUtilities.GetCubicBeizerList(firstTransform.position, secondTransform.position, thirdTransform.position, fourthTransform.position, segmentNum);
+                mDrawPathPointList.AddRange(bezierPoints);
             }
         }
 

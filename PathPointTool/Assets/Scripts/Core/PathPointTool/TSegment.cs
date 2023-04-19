@@ -19,7 +19,7 @@ namespace PathPoint
         /// <summary>
         /// 顶点起始索引
         /// </summary>
-        public int PointStartIndex
+        public int StartPointIndex
         {
             get;
             private set;
@@ -29,6 +29,24 @@ namespace PathPoint
         /// 分段长度
         /// </summary>
         public float Length
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 路段第一个点占总路程比例
+        /// </summary>
+        public float FirstPointPathRatio
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 路段最后一个点占总路程比例
+        /// </summary>
+        public float LastPointPathRatio
         {
             get;
             private set;
@@ -45,8 +63,10 @@ namespace PathPoint
 
         public TSegment()
         {
-            PointStartIndex = 0;
+            StartPointIndex = 0;
             Length = 0;
+            FirstPointPathRatio = 0f;
+            LastPointPathRatio = 0f;
             PathwayType = TPathwayType.Line;
         }
 
@@ -62,21 +82,27 @@ namespace PathPoint
 
         private void Reset()
         {
-            PointStartIndex = 0;
+            StartPointIndex = 0;
             Length = 0;
+            FirstPointPathRatio = 0f;
+            LastPointPathRatio = 0f;
             PathwayType = TPathwayType.Line;
         }
 
         /// <summary>
         /// 初始化
         /// </summary>
-        /// <param name="pointStartIndex"></param>
+        /// <param name="startPointIndex"></param>
         /// <param name="length"></param>
+        /// <param name="firstPointPathRatio"></param>
+        /// <param name="lastPointPathRatio"></param>
         /// <param name="pathwayType"></param>
-        public void Init(int pointStartIndex, float length, TPathwayType pathwayType)
+        public void Init(int startPointIndex, float length, float firstPointPathRatio, float lastPointPathRatio, TPathwayType pathwayType)
         {
-            PointStartIndex = pointStartIndex;
+            StartPointIndex = startPointIndex;
             Length = length;
+            FirstPointPathRatio = firstPointPathRatio;
+            LastPointPathRatio = lastPointPathRatio;
             PathwayType = pathwayType;
         }
     }
