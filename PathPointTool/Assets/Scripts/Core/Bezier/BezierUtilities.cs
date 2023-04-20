@@ -26,6 +26,7 @@ public static class BezierUtilities
     /// <returns></returns>
     public static Vector3 CaculateLinerPoint(Vector3 p0, Vector3 p1, float t)
     {
+        t = Mathf.Clamp01(t);
         // 原始公式:
         /*
         return (1 - t) * p0 + t * p1;
@@ -43,6 +44,7 @@ public static class BezierUtilities
     /// <returns></returns>
     public static Vector3 CaculateBezierPoint(Vector3 p0, Vector3 p1, Vector3 p2, float t)
     {
+        t = Mathf.Clamp01(t);
         // 原始公式:
         /*
         var p0p1 = (1 - t) * p0 + t * p1;
@@ -67,6 +69,7 @@ public static class BezierUtilities
     /// <returns></returns>
     public static Vector3 CaculateCubicBezierPoint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
     {
+        t = Mathf.Clamp01(t);
         // 原始公式:
         /*
         var p0p1 = (1 - t) * p0 + t * p1;
@@ -94,6 +97,7 @@ public static class BezierUtilities
     /// <returns>存储贝塞尔曲线点的数组</returns>
     public static Vector3[] GetLinerList(Vector3 p0, Vector3 p1, int segmentNum)
     {
+        segmentNum = Mathf.Clamp(segmentNum, 1, Int32.MaxValue);
         var pathPointNum = segmentNum + 1;
         Vector3[] path = new Vector3[pathPointNum];
         for (int i = 0; i < pathPointNum; i++)
@@ -115,6 +119,7 @@ public static class BezierUtilities
     /// <returns>存储贝塞尔曲线点的数组</returns>
     public static Vector3[] GetBeizerList(Vector3 p0, Vector3 p1, Vector3 p2, int segmentNum)
     {
+        segmentNum = Mathf.Clamp(segmentNum, 1, Int32.MaxValue);
         var pathPointNum = segmentNum + 1;
         Vector3[] path = new Vector3[pathPointNum];
         for (int i = 0; i < pathPointNum; i++)
@@ -137,6 +142,7 @@ public static class BezierUtilities
     /// <returns>存储贝塞尔曲线点的数组</returns>
     public static Vector3[] GetCubicBeizerList(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int segmentNum)
     {
+        segmentNum = Mathf.Clamp(segmentNum, 1, Int32.MaxValue);
         var pathPointNum = segmentNum + 1;
         Vector3[] path = new Vector3[pathPointNum];
         for (int i = 0; i < pathPointNum; i++)

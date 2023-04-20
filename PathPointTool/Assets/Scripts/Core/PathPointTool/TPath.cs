@@ -79,7 +79,7 @@ namespace PathPoint
         private List<float> mPointDistanceList;
 
         /// <summary>
-        /// 每一段细分顶点数组Map<段数索引(从1开始), 顶点数组>
+        /// 每一段细分顶点数组Map<段数索引(从0开始), 顶点数组>
         /// Note:
         /// 此数据采取跟随分段数据更新而清除
         /// 访问获取指定分段索引数据时采取实时计算并缓存的方式
@@ -305,6 +305,7 @@ namespace PathPoint
         private void UpdateSegmentDatas()
         {
             RecyleAllSegments();
+            mSegmentPointsMap.Clear();
             var pointNum = PathPointList.Count;
             if(pointNum == 0)
             {
@@ -338,7 +339,6 @@ namespace PathPoint
                 segment.Init(i, segmentLength, firstPointPathRatio, lastPointPathRatio, PathwayType);
                 SegmentList.Add(segment);
             }
-            mSegmentPointsMap.Clear();
         }
 
         /// <summary>
