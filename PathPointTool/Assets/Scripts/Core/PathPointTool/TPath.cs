@@ -196,7 +196,7 @@ namespace PathPoint
             var pointNum = PathPointList.Count;
             if (pointIndex < 0 || pointIndex > pointNum)
             {
-                Debug.LogError($"添加的路点索引:{pointIndex}不在有效路点索引:{0}-{pointNum}范围内，添加指定索引路点失败！");
+                Debug.LogError($"添加的路点索引:{pointIndex}不在有效路点索引:0-{pointNum}范围内，添加指定索引路点失败！");
                 return false;
             }
             PathPointList.Insert(pointIndex, point);
@@ -218,7 +218,7 @@ namespace PathPoint
             var pointNum = PathPointList.Count;
             if(pointIndex < 0 || pointIndex >= pointNum)
             {
-                Debug.LogError($"删除的路点索引:{pointIndex}不在有效路点索引:{0}-{pointNum - 1}范围内，删除指定索引路点失败！");
+                Debug.LogError($"删除的路点索引:{pointIndex}不在有效路点索引:0-{pointNum - 1}范围内，删除指定索引路点失败！");
                 return false;
             }
             PathPointList.RemoveAt(pointIndex);
