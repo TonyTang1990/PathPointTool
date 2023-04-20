@@ -83,7 +83,7 @@ namespace PathPoint
         /// <returns></returns>
         public static int GetSegmentPointNumByType(TPathwayType pathwayType)
         {
-            if(pathwayType == TPathwayType.Line)
+            if(pathwayType == TPathwayType.Liner)
             {
                 return 2;
             }

@@ -175,7 +175,7 @@ namespace PathPoint
         /// <returns></returns>
         public TPathTweener DoPathTweenByPoints(Transform target, IEnumerable<Vector3> points, float duration,
                                                 bool isLoop = false, bool updateFoward = false, Action completeCB = null,
-                                                TPathwayType pathwayType = TPathwayType.Line,
+                                                TPathwayType pathwayType = TPathwayType.Liner,
                                                 EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {
             if (target == null)
@@ -203,7 +203,7 @@ namespace PathPoint
         /// <returns></returns>
         public TPathTweener DoPathTweenByTransforms(Transform target, IEnumerable<Transform> transforms, float duration,
                                                     bool isLoop = false, bool updateFoward = false, Action completeCB = null,
-                                                    TPathwayType pathwayType = TPathwayType.Line,
+                                                    TPathwayType pathwayType = TPathwayType.Liner,
                                                     EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {
             if (target == null)

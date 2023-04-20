@@ -67,7 +67,7 @@ namespace PathPoint
             Length = 0;
             FirstPointPathRatio = 0f;
             LastPointPathRatio = 0f;
-            PathwayType = TPathwayType.Line;
+            PathwayType = TPathwayType.Liner;
         }
 
         public void OnCreate()
@@ -86,7 +86,7 @@ namespace PathPoint
             Length = 0;
             FirstPointPathRatio = 0f;
             LastPointPathRatio = 0f;
-            PathwayType = TPathwayType.Line;
+            PathwayType = TPathwayType.Liner;
         }
 
         /// <summary>

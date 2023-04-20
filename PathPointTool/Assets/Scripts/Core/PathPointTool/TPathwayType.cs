@@ -16,7 +16,7 @@ namespace PathPoint
     /// </summary>
     public enum TPathwayType
     {
-        Line = 1,               // 直线
+        Liner = 1,               // 直线
         Bezier,                 // 二阶Bezier曲线
         CubicBezier,            // 三姐Bezier曲线
     }

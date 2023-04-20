@@ -147,7 +147,7 @@ namespace PathPoint
         /// <param name="ease"></param>
         /// <param name="segment"></param>
         public void InitByPoints(Transform target, IEnumerable<Vector3> points, float duration,
-                                    TPathwayType pathwayType = TPathwayType.Line, bool isLoop = false,
+                                    TPathwayType pathwayType = TPathwayType.Liner, bool isLoop = false,
                                     bool updateForward = false, Action completeCB = null,
                                     EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {
@@ -172,7 +172,7 @@ namespace PathPoint
         /// <param name="completeCB"></param>
         /// <param name="segment"></param>
         public void InitByTransforms(Transform target, IEnumerable<Transform> transforms, float duration,
-                                        TPathwayType pathwayType = TPathwayType.Line, bool isLoop = false,
+                                        TPathwayType pathwayType = TPathwayType.Liner, bool isLoop = false,
                                         bool updateForward = false, Action completeCB = null,
                                         EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {

@@ -32,7 +32,7 @@ namespace PathPoint
         /// 路线绘制类型
         /// </summary>
         [Header("路线绘制类型")]
-        public TPathwayType PathwayType = TPathwayType.Line;
+        public TPathwayType PathwayType = TPathwayType.Liner;
 
         /// <summary>
         /// 缓动类型

@@ -368,7 +368,7 @@ namespace PathPoint
         /// </summary>
         private void UpdateDrawDatas()
         {
-            if(mPathwayTypeProperty.intValue == (int)TPathwayType.Line)
+            if(mPathwayTypeProperty.intValue == (int)TPathwayType.Liner)
             {
                 UpdatePathDrawLineDatas();
             }

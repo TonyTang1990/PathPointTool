@@ -90,7 +90,7 @@ namespace PathPoint
         {
             PathPointList = new List<Vector3>();
             SegmentList = new List<TSegment>();
-            PathwayType = TPathwayType.Line;
+            PathwayType = TPathwayType.Liner;
             Ease = EasingFunction.Ease.Linear;
             Segment = 15;
             Length = 0f;
@@ -115,7 +115,7 @@ namespace PathPoint
         {
             PathPointList.Clear();
             RecyleAllSegments();
-            PathwayType = TPathwayType.Line;
+            PathwayType = TPathwayType.Liner;
             Ease = EasingFunction.Ease.Linear;
             Segment = 15;
             Length = 0f;
@@ -130,7 +130,7 @@ namespace PathPoint
         /// <param name="pathwayType"></param>
         /// <param name="ease"></param>
         /// <param name="segment"></param>
-        public void InitByPoints(IEnumerable<Vector3> points, TPathwayType pathwayType = TPathwayType.Line,
+        public void InitByPoints(IEnumerable<Vector3> points, TPathwayType pathwayType = TPathwayType.Liner,
                                     EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {
             PathPointList.Clear();
@@ -148,7 +148,7 @@ namespace PathPoint
         /// <param name="pathwayType"></param>
         /// <param name="ease"></param>
         /// <param name="segment"></param>
-        public void InitByTransforms(IEnumerable<Transform> transforms, TPathwayType pathwayType = TPathwayType.Line,
+        public void InitByTransforms(IEnumerable<Transform> transforms, TPathwayType pathwayType = TPathwayType.Liner,
                                         EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {
             PathPointList.Clear();
@@ -360,7 +360,7 @@ namespace PathPoint
         /// <returns></returns>
         public Vector3 GetPointAt(float t)
         {
-            if(PathwayType == TPathwayType.Line)
+            if(PathwayType == TPathwayType.Liner)
             {
                 return GetLinerPoinAt(t);
             }
@@ -403,7 +403,7 @@ namespace PathPoint
                 var maxPointIndex = PathPointList.Count - 1;
                 var firstPointIndex = SegmentList[segmentIndex].StartPointIndex;
                 var secondPointIndex = Mathf.Clamp(firstPointIndex + 1, 0, maxPointIndex);
-                if(PathwayType == TPathwayType.Line)
+                if(PathwayType == TPathwayType.Liner)
                 {
                     // 直线没必要细分过多的点，这里强制直线每段细分数为1
                     subPoints = BezierUtilities.GetLinerList(PathPointList[firstPointIndex], PathPointList[secondPointIndex], 1);
