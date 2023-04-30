@@ -4,6 +4,7 @@
  * Create Date:             2023/04/09
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -47,7 +48,7 @@ public partial class TileVisualization : MonoBehaviour
 #if UNITY_EDITOR
         mTileMesh = new Mesh();
         mTileMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-        UpdateTileMeshData();
+        UpdateTileDatas();
 #endif
     }
 
@@ -63,17 +64,64 @@ public partial class TileVisualization : MonoBehaviour
     private int mSingleRowVertexNum;
 
     /// <summary>
+    /// 横绘制线条数据列表<起点, 终点>列表
+    /// </summary>
+    private List<KeyValuePair<Vector3, Vector3>> mHorizontalDrawLinesDataList = new List<KeyValuePair<Vector3, Vector3>>();
+
+    /// <summary>
+    /// 竖绘制线条数据列表<起点, 终点>列表
+    /// </summary>
+    private List<KeyValuePair<Vector3, Vector3>> mVerticalDrawLinesDataList = new List<KeyValuePair<Vector3, Vector3>>();
+
+    /// <summary>
     /// 更新Tile数据
     /// </summary>
     public void UpdateTileDatas()
     {
-        UpdateTileMeshData();
+        UpdateTileLineDatas();
+        //UpdateTileMeshData();
+    }
+
+    /// <summary>
+    /// 更新Tile绘制线条数据
+    /// </summary>
+    private void UpdateTileLineDatas()
+    {
+        Debug.Log("更新Tile线条数据！");
+        mHorizontalDrawLinesDataList.Clear();
+        mVerticalDrawLinesDataList.Clear();
+        var horizontalLineNum = 0;
+        var verticalLineNum = 0;
+        if (TileRow != 0 && TileColumn != 0)
+        {
+            horizontalLineNum = TileRow + 1;
+            verticalLineNum = TileColumn + 1;
+        }
+        var totalHorizontalLength = TileColumn * TileLength;
+        var totalVerticalLength = TileRow * TileLength;
+        var startPos = TileStartPos;
+        for(int i = 0; i < horizontalLineNum; i++)
+        {
+            var fromPos = TileStartPos;
+            fromPos.z = fromPos.z + i * TileLength;
+            var toPos = fromPos;
+            toPos.x = toPos.x + totalHorizontalLength;
+            mHorizontalDrawLinesDataList.Add(new KeyValuePair<Vector3, Vector3>(fromPos, toPos));
+        }
+        for (int j = 0; j < verticalLineNum; j++)
+        {
+            var fromPos = TileStartPos;
+            fromPos.x = fromPos.x + j * TileLength;
+            var toPos = fromPos;
+            toPos.z = toPos.z + totalVerticalLength;
+            mVerticalDrawLinesDataList.Add(new KeyValuePair<Vector3, Vector3>(fromPos, toPos));
+        }
     }
 
     /// <summary>
     /// 更新Tile网格数据
     /// </summary>
-    private void UpdateTileMeshData()
+    private void UpdateTileMeshDatas()
     {
         Debug.Log("更新Tile网格数据！");
         mTileMesh.Clear();
@@ -153,6 +201,30 @@ public partial class TileVisualization : MonoBehaviour
     }
 
     private void OnDrawGizmos()
+    {
+        DrawLines();
+        //DrawWireMesh();
+    }
+
+    /// <summary>
+    /// 绘制线条
+    /// </summary>
+    private void DrawLines()
+    {
+        foreach(var horizontalLineData in mHorizontalDrawLinesDataList)
+        {
+            Gizmos.DrawLine(horizontalLineData.Key, horizontalLineData.Value);
+        }
+        foreach (var verticalLineData in mVerticalDrawLinesDataList)
+        {
+            Gizmos.DrawLine(verticalLineData.Key, verticalLineData.Value);
+        }
+    }
+
+    /// <summary>
+    /// 绘制网格Mesh
+    /// </summary>
+    private void DrawWireMesh()
     {
         Gizmos.DrawWireMesh(mTileMesh, TileStartPos);
     }
