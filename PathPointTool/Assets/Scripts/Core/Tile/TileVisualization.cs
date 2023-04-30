@@ -7,6 +7,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 /// <summary>
@@ -45,10 +46,18 @@ public partial class TileVisualization : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log($"TileVisualization:Awake()");
 #if UNITY_EDITOR
-        mTileMesh = new Mesh();
-        mTileMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        //mTileMesh = new Mesh();
+        //mTileMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         UpdateTileDatas();
+#endif
+    }
+
+    private void Update()
+    {
+#if UNITY_EDITOR
+        CheckUpdateTileDatas();
 #endif
     }
 
@@ -56,12 +65,12 @@ public partial class TileVisualization : MonoBehaviour
     /// <summary>
     /// Tile绘制Mesh
     /// </summary>
-    private Mesh mTileMesh;
+    //private Mesh mTileMesh;
 
     /// <summary>
     /// 单行顶点数量
     /// </summary>
-    private int mSingleRowVertexNum;
+    //private int mSingleRowVertexNum;
 
     /// <summary>
     /// 横绘制线条数据列表<起点, 终点>列表
@@ -72,6 +81,22 @@ public partial class TileVisualization : MonoBehaviour
     /// 竖绘制线条数据列表<起点, 终点>列表
     /// </summary>
     private List<KeyValuePair<Vector3, Vector3>> mVerticalDrawLinesDataList = new List<KeyValuePair<Vector3, Vector3>>();
+
+    /// <summary>
+    /// 检查Tile数据更新
+    /// </summary>
+    private void CheckUpdateTileDatas()
+    {
+        if (TileRow == 0 || TileColumn == 0)
+        {
+            return;
+        }
+        if (mHorizontalDrawLinesDataList.Count != TileRow + 1 ||
+            mVerticalDrawLinesDataList.Count != TileColumn + 1)
+        {
+            UpdateTileDatas();
+        }
+    }
 
     /// <summary>
     /// 更新Tile数据
@@ -123,6 +148,7 @@ public partial class TileVisualization : MonoBehaviour
     /// </summary>
     private void UpdateTileMeshDatas()
     {
+        /*
         Debug.Log("更新Tile网格数据！");
         mTileMesh.Clear();
         mSingleRowVertexNum = TileColumn + 1;
@@ -145,6 +171,7 @@ public partial class TileVisualization : MonoBehaviour
         mTileMesh.RecalculateNormals();
         mTileMesh.RecalculateTangents();
         mTileMesh.RecalculateBounds();
+        */
     }
 
     /// <summary>
@@ -155,7 +182,8 @@ public partial class TileVisualization : MonoBehaviour
     /// <param name="uvs"></param>
     /// <param name="triangleIndices"></param>
     private void UpdateTileSquareMeshData(int squareIndex, Vector3[] vertices, Vector2[] uvs, int[] triangleIndices)
-    {
+    {     
+        /*
         // Note:
         // 1. 三角形顺序是按顺时针
         // 这里是按左下->左上->右下->右下顺序构建的三角形
@@ -198,6 +226,7 @@ public partial class TileVisualization : MonoBehaviour
         triangleIndices[triangleIndiceStartIndex + 3] = bottomRightVertexIndex;
         triangleIndices[triangleIndiceStartIndex + 4] = topLeftVertexIndex;
         triangleIndices[triangleIndiceStartIndex + 5] = topRightVertexIndex;
+        */
     }
 
     private void OnDrawGizmos()
@@ -226,7 +255,7 @@ public partial class TileVisualization : MonoBehaviour
     /// </summary>
     private void DrawWireMesh()
     {
-        Gizmos.DrawWireMesh(mTileMesh, TileStartPos);
+        //Gizmos.DrawWireMesh(mTileMesh, TileStartPos);
     }
 #endif
 }

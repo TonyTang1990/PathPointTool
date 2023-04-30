@@ -716,7 +716,7 @@ namespace PathPoint
             t = easeFunc(0, 1, t);
             var distance = t * Length;
             segment = SegmentList[0];
-            for (int i = 0, length = SegmentList.Count - 1; i < length; i++)
+            for (int i = 0, length = SegmentList.Count; i < length; i++)
             {
                 distance -= SegmentList[i].Length;
                 segment = SegmentList[i];

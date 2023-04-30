@@ -6,6 +6,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace PathPoint
@@ -18,9 +19,10 @@ namespace PathPoint
     public class TPathData : MonoBehaviour
     {
         /// <summary>
-        /// 路点父节点名
+        /// 绘制总开关
         /// </summary>
-        private const string PathPointParentNodeName = "Path";
+        [Header("绘制总开关")]
+        public bool DrawSwitch = true;
 
         /// <summary>
         /// 路线类型
@@ -109,10 +111,11 @@ namespace PathPoint
         public Color SubPathPointDrawColor = Color.blue;
 
         /// <summary>
-        /// 路点对象列表
+        /// 路点数据列表
         /// </summary>
-        [Header("路点对象列表")]
-        public List<Transform> PathPointList = new List<Transform>();
+        [Header("路点数据列表")]
+        [SerializeReference]
+        public List<TPathPointData> PathPointDataList = new List<TPathPointData>();
 
         /// <summary>
         /// 模拟移动对象
@@ -127,177 +130,76 @@ namespace PathPoint
 
         private void Awake()
         {
-            CheckPathPointParentNode();
-        }
 
-        private void Update()
-        {
-            CheckPathPointParentNode();
-            CheckPathPointNodes();
         }
 
         /// <summary>
-        /// 初始化路点父节点
-        /// </summary>
-        private void InitPathPointParentNode()
-        {
-            if (mPathPointParentNode == null)
-            {
-                mPathPointParentNode = new GameObject(PathPointParentNodeName).transform;
-                mPathPointParentNode.SetParent(transform);
-                mPathPointParentNode.localPosition = Vector3.zero;
-            }
-        }
-
-        /// <summary>
-        /// 路点父节点检查
-        /// </summary>
-        private void CheckPathPointParentNode()
-        {
-            if (mPathPointParentNode == null)
-            {
-                mPathPointParentNode = transform.Find(PathPointParentNodeName);
-                if(mPathPointParentNode == null)
-                {
-                    InitPathPointParentNode();
-                }
-            }
-        }
-
-        /// <summary>
-        /// 检查路点子节点
-        /// </summary>
-        private void CheckPathPointNodes()
-        {
-            for(int i = PathPointList.Count - 1; i  >= 0; i--)
-            {
-                if(PathPointList[i] == null)
-                {
-                    RemovePathPointByIndex(i);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 获取所有路点位置列表
+        /// 获取所有路点位置列表(新列表)
         /// </summary>
         /// <returns></returns>
         public List<Vector3> GetPathPointPosList()
         {
-            var pathPointPosList = new List<Vector3>();
-            foreach (var pathPoint in PathPointList)
+            var newPathPointList = new List<Vector3>();
+            foreach(var pathPointData in PathPointDataList)
             {
-                if(pathPoint != null)
-                {
-                    pathPointPosList.Add(pathPoint.position);
-                }
+                newPathPointList.Add(pathPointData.Position);
             }
-            return pathPointPosList;
+            return newPathPointList;
         }
 
         /// <summary>
-        /// 指定位置索引添加路点
+        /// 指定位置索引添加路点数据
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public bool AddPathPointByIndex(int index)
+        public bool AddPathPointDataByIndex(int index)
         {
-            var pathPointNum = PathPointList.Count;
+            var pathPointNum = PathPointDataList.Count;
             if (index < 0 || index > pathPointNum)
             {
                 Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{pathPointNum}，添加路点失败！");
                 return false;
             }
-            var newPathPoint = ConstructNewPathPoint(index);
-            PathPointList.Insert(index, newPathPoint);
-            OnPathPointNumChanged();
+            var newPathPointData = ConstructNewPathPointData(index);
+            PathPointDataList.Insert(index, newPathPointData);
             return true;
         }
 
         /// <summary>
-        /// 移除指定索引的路点
+        /// 移除指定索引的路点数据
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public bool RemovePathPointByIndex(int index)
+        public bool RemovePathPointDataByIndex(int index)
         {
-            var pathPointNum = PathPointList.Count;
+            var pathPointNum = PathPointDataList.Count;
             if (index < 0 || index >= pathPointNum)
             {
-                Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{pathPointNum - 1}，移除路点失败！");
+                Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{pathPointNum - 1}，移除路点数据失败！");
                 return false;
             }
-            DestroyPathPointByIndex(index);
-            PathPointList.RemoveAt(index);
-            OnPathPointNumChanged();
+            PathPointDataList.RemoveAt(index);
             return true;
         }
 
         /// <summary>
-        /// 销毁指定索引路点对象
+        /// 构建一个新的路点数据
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public bool DestroyPathPointByIndex(int index)
-        {
-            var pathPointNum = PathPointList.Count;
-            if (index < 0 || index >= pathPointNum)
-            {
-                Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{pathPointNum - 1}，销毁路点对象失败！");
-                return false;
-            }
-            if(PathPointList[index] != null)
-            {
-                GameObject.DestroyImmediate(PathPointList[index].gameObject);
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// 响应路点数量变化
-        /// </summary>
-        private void OnPathPointNumChanged()
-        {
-            UpdatePathPointNames();
-        }
-
-        /// <summary>
-        /// 更新路点节点名字
-        /// </summary>
-        public void UpdatePathPointNames()
-        {
-            for(int i = 0, length = PathPointList.Count; i < length; i++)
-            {
-                var pathPoint = PathPointList[i];
-                if (pathPoint != null)
-                {
-                    pathPoint.name = GetPathPointNameByIndex(i);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 构建一个新的路点
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public Transform ConstructNewPathPoint(int index)
+        public TPathPointData ConstructNewPathPointData(int index)
         {
             // 路点初始位置根据路点索引是否有有效路点决定
             // 没有任何路点则用路点起始位置
             // 有有效路点则用当前构建位置的路点位置作为初始化位置
-            var pathPoint = new GameObject(GetPathPointNameByIndex(index)).transform;
             var pathPointPosition = PathPointStartPos;
-            var positionReferenceIndex = Mathf.Clamp(index, 0, PathPointList.Count - 1);
-            var isExistReferencePathPoint = IsExistPathPointByIndex(positionReferenceIndex);
-            if (isExistReferencePathPoint && PathPointList[positionReferenceIndex] != null)
+            var positionReferenceIndex = Mathf.Clamp(index, 0, PathPointDataList.Count - 1);
+            var isExistReferencePathPoint = IsExistPathPointDataByIndex(positionReferenceIndex);
+            if (isExistReferencePathPoint && PathPointDataList[positionReferenceIndex] != null)
             {
-                pathPointPosition = PathPointList[positionReferenceIndex].position;
+                pathPointPosition = PathPointDataList[positionReferenceIndex].Position;
             }
-            pathPoint.position = pathPointPosition;
-            pathPoint.gameObject.AddComponent<TPathPointData>();
-            pathPoint.SetParent(mPathPointParentNode);
-            pathPoint.SetSiblingIndex(index);
+            var pathPoint = new TPathPointData(pathPointPosition);
             return pathPoint;
         }
 
@@ -308,7 +210,7 @@ namespace PathPoint
         /// <returns></returns>
         public string GetPathPointNameByIndex(int index)
         {
-            return $"Point({index})";
+            return $"P({index})";
         }
 
         /// <summary>
@@ -317,17 +219,17 @@ namespace PathPoint
         /// <returns></returns>
         private bool HasPathPoint()
         {
-            return PathPointList.Count > 0;
+            return PathPointDataList.Count > 0;
         }
 
         /// <summary>
-        /// 指定索引是否存在路点
+        /// 指定索引是否存在路点数据
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        private bool IsExistPathPointByIndex(int index)
+        private bool IsExistPathPointDataByIndex(int index)
         {
-            return index >= 0 && index < PathPointList.Count;
+            return index >= 0 && index < PathPointDataList.Count;
         }
 
 #if UNITY_EDITOR
@@ -336,8 +238,11 @@ namespace PathPoint
         /// </summary>
         private void OnDrawGizmos()
         {
-            DrawPathPointSpheres();
-            DrawPathPointIcons();
+            if(DrawSwitch)
+            {
+                DrawPathPointSpheres();
+                DrawPathPointIcons();
+            }
         }
 
         /// <summary>
@@ -347,12 +252,12 @@ namespace PathPoint
         {
             var preGimozColor = Gizmos.color;
             Gizmos.color = PathPointSphereColor;
-            for(int i = 0, length = PathPointList.Count; i < length; i++)
+            for(int i = 0, length = PathPointDataList.Count; i < length; i++)
             {
-                var pathPoint = PathPointList[i];
-                if(pathPoint != null)
+                var pathPointData = PathPointDataList[i];
+                if(pathPointData != null)
                 {
-                    Gizmos.DrawWireSphere(pathPoint.position, PathPointSphereSize);
+                    Gizmos.DrawWireSphere(pathPointData.Position, PathPointSphereSize);
                 }
             }
             Gizmos.color = preGimozColor;
@@ -363,12 +268,12 @@ namespace PathPoint
         /// </summary>
         private void DrawPathPointIcons()
         {
-            for (int i = 0, length = PathPointList.Count; i < length; i++)
+            for (int i = 0, length = PathPointDataList.Count; i < length; i++)
             {
-                var pathPoint = PathPointList[i];
-                if (pathPoint != null)
+                var pathPointData = PathPointDataList[i];
+                if (pathPointData != null)
                 {
-                    Gizmos.DrawIcon(pathPoint.position, "PathPointTool/pathpoint");
+                    Gizmos.DrawIcon(pathPointData.Position, "PathPointTool/pathpoint");
                 }
             }
         }

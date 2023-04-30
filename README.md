@@ -43,19 +43,23 @@
 
 ![CustomPathDataExport](/img/Unity/PathPointTool/CustomPathDataExport.PNG)
 
-Ease插值类型：
-
-![EaseLerpFunction](/img/Unity/Math/EaseLerpFunction.png)
-
 LineRenderer可视化展示：
 
 ![CutmullRomSplineDraw](/img/Unity/PathPointTool/CutmullRomSplineDraw.PNG)
+
+Ease插值类型：
+
+![EaseLerpFunction](/img/Unity/Math/EaseLerpFunction.png)
 
 M个点的N个3阶Bezier插值计算思路如下：
 
 1. **N个3阶Bezier曲线的组合插值是通过将M个点分成N段3阶Bezier，计算出总长度且每段Bezier存储起始点索引和Bezier类型(影响当前Bezier的采样点数)和路段长度**
 2. **当我们要计算一个插值比例t(0-1)进度插值计算时，首先根据总距离和进度映射计算出在哪一段Bezier路段**
 3. **映射计算到对应3阶Bezier段后，再进行单个3阶Bezier曲线比例插值从而得到我们M个点的插值比例t(0-1)的最终插值位置**
+
+Cutmull-Rom Spline曲线经过首尾两个控制点思路：
+
+1. **利用Catmull-Rom Spline曲线会通过中间两个控制点且中间两个点经过时的切线与前后两个控制点连线平行，那么我可以可以通过模拟构造一个P(-1)=2P0-P1(确保P(-1)P1和P0切线平行从而确保从P0处切线平行)，利用P(-1)P0P1P2构造一个CatmullRomSpline曲线即可画出P0开始的P0P1的曲线。最后一段曲线同理，构造一个P(N+1)=2P(N)-P(N-1)，然后绘制P(N-2)P(N-1)P(N)P(N+1)即可绘制出P(N-1)P(N)的曲线。**
 
 TODO:
 

@@ -4,6 +4,7 @@
  * Create Date:             2023/04/09
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -23,6 +24,11 @@ namespace PathPoint
         /// 目标组件
         /// </summary>
         private TPathData mTarget;
+
+        /// <summary>
+        /// DrawSwitch属性
+        /// </summary>
+        private SerializedProperty mDrawSwitchProperty;
 
         /// <summary>
         /// PathType属性
@@ -95,9 +101,9 @@ namespace PathPoint
         private SerializedProperty mSubPathPointDrawColorProperty;
 
         /// <summary>
-        /// PathPointList属性
+        /// PathPointDataList属性
         /// </summary>
-        private SerializedProperty mPathPointListProperty;
+        private SerializedProperty mPathPointDataListProperty;
 
         /// <summary>
         /// SimulationMoveGO属性
@@ -155,6 +161,7 @@ namespace PathPoint
         /// </summary>
         private void InitProperties()
         {
+            mDrawSwitchProperty ??= serializedObject.FindProperty("DrawSwitch");
             mPathTypeProperty ??= serializedObject.FindProperty("PathType");
             mPathwayTypeProperty ??= serializedObject.FindProperty("PathwayType");
             mEaseProperty ??= serializedObject.FindProperty("Ease");
@@ -169,7 +176,7 @@ namespace PathPoint
             mPathPointSphereColorProperty ??= serializedObject.FindProperty("PathPointSphereColor");
             mPathDrawColorProperty ??= serializedObject.FindProperty("PathDrawColor");
             mSubPathPointDrawColorProperty ??= serializedObject.FindProperty("SubPathPointDrawColor");
-            mPathPointListProperty ??= serializedObject.FindProperty("PathPointList");
+            mPathPointDataListProperty ??= serializedObject.FindProperty("PathPointDataList");
             mSimulationMoveGOProperty ??= serializedObject.FindProperty("SimulationMoveGO");
         }
 
@@ -198,6 +205,8 @@ namespace PathPoint
 
             // 确保对SerializaedObject和SerializedProperty的数据修改每帧同步
             serializedObject.Update();
+
+            EditorGUILayout.PropertyField(mDrawSwitchProperty);
 
             EditorGUILayout.BeginVertical();
             EditorGUILayout.PropertyField(mPathTypeProperty);
@@ -245,7 +254,7 @@ namespace PathPoint
 
             DrawPathMoveSimulationArea();
             DrawPositionCorrectArea();
-            DrawPathPointListProperty();
+            DrawPathPointDataListProperty();
             DrawExportDataArea();
 
             EditorGUILayout.EndVertical();
@@ -255,8 +264,7 @@ namespace PathPoint
 
             if (mPathPointRelativePropertyChange)
             {
-                Debug.Log($"路点相关数据属性变化，更新相关数据！");
-                mTarget.UpdatePathPointNames();
+                //Debug.Log($"路点相关数据属性变化，更新相关数据！");
                 UpdateDrawDatas();
                 mPathPointRelativePropertyChange = false;
             }
@@ -307,28 +315,27 @@ namespace PathPoint
         }
 
         /// <summary>
-        /// 绘制路点列表属性
+        /// 绘制路点数据列表属性
         /// </summary>
-        private void DrawPathPointListProperty()
+        private void DrawPathPointDataListProperty()
         {
             EditorGUILayout.BeginVertical();
             mPathPointFoldOut = EditorGUILayout.Foldout(mPathPointFoldOut, "路点数据列表");
             if (mPathPointFoldOut)
             {
-                for (int i =  0; i < mPathPointListProperty.arraySize; i++)
+                for (int i =  0; i < mPathPointDataListProperty.arraySize; i++)
                 {
                     EditorGUILayout.BeginHorizontal();
-                    var pathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(i);
-                    EditorGUILayout.LabelField($"{i}", GUILayout.Width(20f));
-                    EditorGUILayout.ObjectField(pathPointProperty.objectReferenceValue, TPathConst.TransformType, false, GUILayout.ExpandWidth(true));
+                    EditorGUILayout.LabelField($"索引:{i}", GUILayout.Width(60f));
+                    DrawOnePathPointDataPropertyByIndex(i);
                     if (GUILayout.Button("+", GUILayout.Width(40f)))
                     {
-                        AddPathPointByIndex(i);
+                        AddPathPointDataByIndex(i);
                         mPathPointRelativePropertyChange = true;
                     }
                     if (GUILayout.Button("-", GUILayout.Width(40f)))
                     {
-                        RemovePathPointByIndex(i);
+                        RemovePathPointDataByIndex(i);
                         mPathPointRelativePropertyChange = true;
                     }
                     EditorGUILayout.EndHorizontal();
@@ -336,48 +343,85 @@ namespace PathPoint
             }
             if (GUILayout.Button("+", GUILayout.ExpandWidth(true)))
             {
-                AddPathPointByIndex(mPathPointListProperty.arraySize);
+                AddPathPointDataByIndex(mPathPointDataListProperty.arraySize);
                 mPathPointRelativePropertyChange = true;
             }
             EditorGUILayout.EndVertical();
         }
 
         /// <summary>
-        /// 指定位置索引添加路点
+        /// 绘制单个PathPointData属性
+        /// </summary>
+        /// <param name="pathPointDataIndex"></param>
+        private void DrawOnePathPointDataPropertyByIndex(int pathPointDataIndex)
+        {
+            var pathPointDataProperty = mPathPointDataListProperty.GetArrayElementAtIndex(pathPointDataIndex);
+            var positionProperty = pathPointDataProperty.FindPropertyRelative("Position");
+            var ppTypeProperty = pathPointDataProperty.FindPropertyRelative("PPType");
+            var newVector3Value = positionProperty.vector3Value;
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.LabelField("X", GUILayout.Width(10f));
+            newVector3Value.x = EditorGUILayout.FloatField(newVector3Value.x, GUILayout.Width(60f));
+            EditorGUILayout.LabelField("Y", GUILayout.Width(10f));
+            newVector3Value.y = EditorGUILayout.FloatField(newVector3Value.y, GUILayout.Width(60f));
+            EditorGUILayout.LabelField("Z", GUILayout.Width(10f));
+            newVector3Value.z = EditorGUILayout.FloatField(newVector3Value.z, GUILayout.Width(60f));
+            if (EditorGUI.EndChangeCheck())
+            {
+                UpdatePathPointDataPosition(pathPointDataIndex, positionProperty, newVector3Value);
+            }
+            EditorGUILayout.LabelField("路点类型", GUILayout.Width(50f));
+            ppTypeProperty.intValue = (int)(TPathPointType)EditorGUILayout.EnumPopup((TPathPointType)ppTypeProperty.intValue, GUILayout.Width(100f));
+        }
+
+        /// <summary>
+        /// 更新指定索引路点数据的坐标位置
+        /// </summary>
+        /// <param name="pathPointDataIndex"></param>
+        /// <param name="positionProperty"></param>
+        /// <param name="newPos"></param>
+        private void UpdatePathPointDataPosition(int pathPointDataIndex, SerializedProperty positionProperty, Vector3 newPos)
+        {
+            positionProperty.vector3Value = newPos;
+            //Debug.Log($"更新路点索引:{pathPointDataIndex}的位置:{positionProperty.vector3Value.ToString()}");
+            mPathPointRelativePropertyChange = true;
+        }
+
+        /// <summary>
+        /// 指定位置索引添加路点数据
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        private bool AddPathPointByIndex(int index)
+        private bool AddPathPointDataByIndex(int index)
         {
-            var pathPointNum = mPathPointListProperty.arraySize;
+            var pathPointNum = mPathPointDataListProperty.arraySize;
             if (index < 0 || index > pathPointNum)
             {
                 Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{pathPointNum}，添加路点失败！");
                 return false;
             }
-            var newPathPoint = mTarget.ConstructNewPathPoint(index);
-            mPathPointListProperty.InsertArrayElementAtIndex(index);
-            var newPathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(index);
-            newPathPointProperty.objectReferenceValue = newPathPoint.transform;
+            var newPathPointData = mTarget.ConstructNewPathPointData(index);
+            mPathPointDataListProperty.InsertArrayElementAtIndex(index);
+            var newPathPointDataProperty = mPathPointDataListProperty.GetArrayElementAtIndex(index);
+            newPathPointDataProperty.managedReferenceValue = newPathPointData;
             mPathPointRelativePropertyChange = true;
             return true;
         }
 
         /// <summary>
-        /// 移除指定索引的路点
+        /// 移除指定索引的路点数据
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        private bool RemovePathPointByIndex(int index)
+        private bool RemovePathPointDataByIndex(int index)
         {
-            var pathPointNum = mPathPointListProperty.arraySize;
+            var pathPointNum = mPathPointDataListProperty.arraySize;
             if (index < 0 || index >= pathPointNum)
             {
                 Debug.LogError($"指定索引:{index}不是有效索引范围:{0}-{pathPointNum - 1}，移除路点失败！");
                 return false;
             }
-            mTarget.DestroyPathPointByIndex(index);
-            mPathPointListProperty.DeleteArrayElementAtIndex(index);
+            mPathPointDataListProperty.DeleteArrayElementAtIndex(index);
             mPathPointRelativePropertyChange = true;
             return true;
         }
@@ -396,14 +440,11 @@ namespace PathPoint
                 mDrawPath.Reset();
                 mDrawPath.UpdatePathwayType(pathwayType);
                 mDrawPath.UpdateSetgmentNum(mSegmentProperty.intValue);
-                for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i++)
+                for (int i = 0, length = mPathPointDataListProperty.arraySize; i < length; i++)
                 {
-                    var pathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(i);
-                    if (pathPointProperty.objectReferenceValue != null)
-                    {
-                        var pathPointTransform = pathPointProperty.objectReferenceValue as Transform;
-                        mDrawPath.AddPoint(pathPointTransform.position, false);
-                    }
+                    var pathPointProperty = mPathPointDataListProperty.GetArrayElementAtIndex(i);
+                    var positionProperty = pathPointProperty.FindPropertyRelative("Position");
+                    mDrawPath.AddPoint(positionProperty.vector3Value, false);
                 }
                 mDrawPath.UpdatePathDatas();
 
@@ -433,9 +474,32 @@ namespace PathPoint
         /// </summary>
         private void OnSceneGUI()
         {
-            DrawPathPointLabels();
-            DrawPathPointLines();
-            DrawSubPathPointSpheres();
+            if(mDrawSwitchProperty.boolValue)
+            {
+                DrawPathPointLabels();
+                DrawPathPointLines();
+                DrawSubPathPointSpheres();
+                DrawPathPointPositionHandles();
+            }
+        }
+
+        /// <summary>
+        /// 绘制所有路点坐标操作PositionHandle
+        /// </summary>
+        private void DrawPathPointPositionHandles()
+        {
+            for (int i = 0, length = mPathPointDataListProperty.arraySize; i < length; i++)
+            {
+                EditorGUI.BeginChangeCheck();
+                var pathPointDataProperty = mPathPointDataListProperty.GetArrayElementAtIndex(i);
+                var positionProperty = pathPointDataProperty.FindPropertyRelative("Position");
+                var newTargetPosition = Handles.PositionHandle(positionProperty.vector3Value, Quaternion.identity);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    UpdatePathPointDataPosition(i, positionProperty, newTargetPosition);
+                    serializedObject.ApplyModifiedProperties();
+                }
+            }
         }
 
         /// <summary>
@@ -443,15 +507,12 @@ namespace PathPoint
         /// </summary>
         private void DrawPathPointLabels()
         {
-            for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i++)
+            for (int i = 0, length = mPathPointDataListProperty.arraySize; i < length; i++)
             {
-                var pathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(i);
-                var pathPointTransform = pathPointProperty.objectReferenceValue as Transform;
-                if (pathPointTransform != null)
-                {
-                    var pathPointLabelName = mTarget.GetPathPointNameByIndex(i);
-                    Handles.Label(pathPointTransform.position, pathPointLabelName, mLabelGUIStyle);
-                }
+                var pathPointDataProperty = mPathPointDataListProperty.GetArrayElementAtIndex(i);
+                var positionProperty = pathPointDataProperty.FindPropertyRelative("Position");
+                var pathPointLabelName = mTarget.GetPathPointNameByIndex(i);
+                Handles.Label(positionProperty.vector3Value, pathPointLabelName, mLabelGUIStyle);
             }
         }
 
@@ -498,22 +559,19 @@ namespace PathPoint
             }
             var pathPointStartPos = mPathPointStartPosProperty.vector3Value;
             var halfGap = pathPointGap / 2f;
-            for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i++)
+            for (int i = 0, length = mPathPointDataListProperty.arraySize; i < length; i++)
             {
-                var pathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(i);
-                var pathPoint = pathPointProperty.objectReferenceValue as Transform;
-                if (pathPoint != null)
+                var pathPointDataProperty = mPathPointDataListProperty.GetArrayElementAtIndex(i);
+                var positionProperty = pathPointDataProperty.FindPropertyRelative("Position");
+                var position = positionProperty.vector3Value;
+                var pathPointPosOffset = position - pathPointStartPos;
+                var correctPosX = Mathf.FloorToInt((pathPointPosOffset.x + halfGap) / pathPointGap) * pathPointGap + pathPointStartPos.x;
+                var correctPosY = Mathf.FloorToInt((pathPointPosOffset.y + halfGap) / pathPointGap) * pathPointGap + pathPointStartPos.y;
+                var correctPosZ = Mathf.FloorToInt((pathPointPosOffset.z + halfGap) / pathPointGap) * pathPointGap + pathPointStartPos.z;
+                var correctPosition = new Vector3(correctPosX, correctPosY, correctPosZ);
+                if (!Vector3.Equals(position, correctPosition))
                 {
-                    var pathPointPosOffset = pathPoint.position - pathPointStartPos;
-                    var correctPosX = Mathf.FloorToInt((pathPointPosOffset.x + halfGap) / pathPointGap) * pathPointGap + pathPointStartPos.x;
-                    var correctPosY = Mathf.FloorToInt((pathPointPosOffset.y + halfGap) / pathPointGap) * pathPointGap + pathPointStartPos.y;
-                    var correctPosZ = Mathf.FloorToInt((pathPointPosOffset.z + halfGap) / pathPointGap) * pathPointGap + pathPointStartPos.z;
-                    var correctPosition = new Vector3(correctPosX, correctPosY, correctPosZ);
-                    if (!Vector3.Equals(pathPoint.position, correctPosition))
-                    {
-                        Debug.Log($"矫正路点索引:{i}位置:{pathPoint.position.ToString()}到{correctPosition.ToString()}");
-                        pathPoint.position = correctPosition;
-                    }
+                    UpdatePathPointDataPosition(i, positionProperty, correctPosition);
                 }
             }
             Debug.Log($"路点位置矫正完成！");
@@ -532,7 +590,7 @@ namespace PathPoint
         /// </summary>
         private void UpdateLineRendererDatas()
         {
-            Debug.Log($"更新LineRenderer组件数据！");
+            //Debug.Log($"更新LineRenderer组件数据！");
             var drawLineRenderer = mDrawLineRendererProperty.objectReferenceValue as LineRenderer;
             if (drawLineRenderer != null)
             {
@@ -575,13 +633,13 @@ namespace PathPoint
             var exportFileFullPath = TPathUtilities.GetExportFileFullPathByType(TPathType.Normal);
             using (var st = new StreamWriter(exportFileFullPath))
             {
-                for (int i = 0, length = mPathPointListProperty.arraySize - 1; i < length; i++)
+                for (int i = 0, length = mPathPointDataListProperty.arraySize - 1; i < length; i++)
                 {
-                    var pathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(i);
-                    var pathPointTransform = pathPointProperty.objectReferenceValue as Transform;
-                    var pathPointPos = pathPointTransform != null ? pathPointTransform.position : Vector3.zero;
-                    var pathPointData = pathPointTransform != null ? pathPointTransform.GetComponent<TPathPointData>() : null;
-                    var pathPointType = pathPointData != null ? pathPointData.PPType : TPathPointType.Invalide;
+                    var pathPointDataProperty = mPathPointDataListProperty.GetArrayElementAtIndex(i);
+                    var positionProperty = pathPointDataProperty.FindPropertyRelative("Position");
+                    var pathPointDataPPTypeProperty = pathPointDataProperty.FindPropertyRelative("PPType");
+                    var pathPointPos = positionProperty.vector3Value;
+                    var pathPointType = (TPathPointType)pathPointDataPPTypeProperty.intValue;
                     st.WriteLine($"{i},{pathPointPos.x};{pathPointPos.y};{pathPointPos.z},{(int)pathPointType}");
                 }
             }
