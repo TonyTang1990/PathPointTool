@@ -90,6 +90,34 @@ public static class BezierUtilities
     }
 
     /// <summary>
+    /// 根据t(0-1)计算Cutmull-Roll Spline曲线上面对应的点
+    /// </summary>
+    /// <param name="p0">第一个点</param>
+    /// <param name="p1">第二个点</param>
+    /// <param name="p2">第三个点</param>
+    /// <param name="p3">第四个点</param>
+    /// <param name="t">插值(0-1)</param>
+    /// <returns></returns>
+    public static Vector3 CaculateCRSplinePoint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+    {
+        t = Mathf.Clamp01(t);
+        // 原始公式:
+        /*
+         Output_point = (-0.5*t*t*t + t*t – 0.5*t) * p0 +
+		                (1.5*t*t*t - 2.5*t*t + 1.0) * p1 +
+		                (-1.5*t*t*t + 2.0*t*t + 0.5*t) * p2 +
+		                (0.5*t*t*t – 0.5*t*t) * p3;
+        */
+        // 简化运算:
+        var tt = t * t;
+        var ttt = tt * t;
+        return (-0.5f * ttt + tt - 0.5f * t) * p0 +
+               (1.5f * ttt - 2.5f * tt + 1) * p1 +
+               (-1.5f * ttt + 2 * tt + 0.5f * t) * p2 +
+               (0.5f * ttt - 0.5f * tt) * p3;
+    }
+
+    /// <summary>
     /// 获取存储的一阶Bezier曲线细分顶点的数组
     /// </summary>
     /// <param name="p0">第一个点</param>
@@ -150,6 +178,29 @@ public static class BezierUtilities
         {
             float t = i / (float)segmentNum;
             Vector3 pathPoint = CaculateCubicBezierPoint(p0, p1, p2, p3, t);
+            path[i] = pathPoint;
+        }
+        return path;
+    }
+
+    /// <summary>
+    /// 获取存储的Cutmull-Rom Spline曲线细分顶点的数组
+    /// </summary>
+    /// <param name="p0">起始点</param>
+    /// <param name="p1">控制点1</param>
+    /// <param name="p2">控制点2</param>
+    /// <param name="p3">目标点</param>
+    /// <param name="segmentNum">细分段数</param>
+    /// <returns>存储Cutmull-Rom Spline曲线点的数组</returns>
+    public static Vector3[] GetCRSplineList(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int segmentNum)
+    {
+        segmentNum = Mathf.Clamp(segmentNum, 1, Int32.MaxValue);
+        var pathPointNum = segmentNum + 1;
+        Vector3[] path = new Vector3[pathPointNum];
+        for (int i = 0; i < pathPointNum; i++)
+        {
+            float t = i / (float)segmentNum;
+            Vector3 pathPoint = CaculateCRSplinePoint(p0, p1, p2, p3, t);
             path[i] = pathPoint;
         }
         return path;

@@ -59,6 +59,8 @@
     <Compile Include="Assets\Scripts\Core\PathPointTool\TPathData.cs" />
     <Compile Include="Assets\Scripts\Core\PathPointTool\TPathConst.cs" />
     <Compile Include="Assets\Scripts\Utilities\PathUtilities.cs" />
+    <Compile Include="Assets\Scripts\Core\Ease\EasingFunctions.cs" />
+    <Compile Include="Assets\Scripts\GameLaucher.cs" />
     <Compile Include="Assets\Scripts\Core\Pool\ObjectFactory.cs" />
     <Compile Include="Assets\Scripts\Utilities\FolderUtilities.cs" />
     <Compile Include="Assets\Scripts\Core\PathPointTool\TPathPointType.cs" />
@@ -78,8 +80,6 @@
     <Compile Include="Assets\Scripts\Core\Pool\ObjectPool.cs" />
     <Compile Include="Assets\Scripts\Core\Pool\GameObjectPool.cs" />
     <Compile Include="Assets\Scripts\Core\PathPointTool\TPathType.cs" />
-    <Compile Include="Assets\Scripts\Core\Ease\EasingFunctions.cs" />
-    <Compile Include="Assets\Scripts\GameLaucher.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

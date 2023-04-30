@@ -95,9 +95,43 @@ namespace PathPoint
             {
                 return 4;
             }
+            else if(pathwayType == TPathwayType.CRSpline)
+            {
+                return 4;
+            }
             else
             {
                 Debug.LogError($"不支持的路线类型:{pathwayType.ToString()}，获取路线分段顶点数量失败！");
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// 获取指定路线类型的分段顶点步长
+        /// </summary>
+        /// <param name="pathwayType"></param>
+        /// <returns></returns>
+        public static int GetSegmentStepNumByType(TPathwayType pathwayType)
+        {
+            if (pathwayType == TPathwayType.Liner)
+            {
+                return 1;
+            }
+            else if (pathwayType == TPathwayType.Bezier)
+            {
+                return 2;
+            }
+            else if (pathwayType == TPathwayType.CubicBezier)
+            {
+                return 3;
+            }
+            else if (pathwayType == TPathwayType.CRSpline)
+            {
+                return 1;
+            }
+            else
+            {
+                Debug.LogError($"不支持的路线类型:{pathwayType.ToString()}，获取路线分段步长失败！");
                 return 0;
             }
         }

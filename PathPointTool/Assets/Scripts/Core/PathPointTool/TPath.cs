@@ -45,9 +45,20 @@ namespace PathPoint
         }
 
         /// <summary>
-        /// 路点位置列表
+        /// 路点位置列表(传入构建路线的点列表)
         /// </summary>
         public List<Vector3> PathPointList
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 计算路线需要的路点位置列表
+        /// Note:
+        /// 1. Cutmull-Rom Spline类型下和PathPointList不一致，因为需要头尾加路点确保头尾两个路点被经过
+        /// </summary>
+        public List<Vector3> CaculatePathPointList
         {
             get;
             private set;
@@ -96,6 +107,7 @@ namespace PathPoint
             Length = 0f;
             mPointDistanceList = new List<float>();
             mSegmentPointsMap = new Dictionary<int, Vector3[]>();
+            CaculatePathPointList = new List<Vector3>();
         }
 
         public void OnCreate()
@@ -111,7 +123,7 @@ namespace PathPoint
         /// <summary>
         /// 重置数据
         /// </summary>
-        private void Reset()
+        public void Reset()
         {
             PathPointList.Clear();
             RecyleAllSegments();
@@ -121,6 +133,7 @@ namespace PathPoint
             Length = 0f;
             mPointDistanceList.Clear();
             mSegmentPointsMap.Clear();
+            CaculatePathPointList.Clear();
         }
 
         /// <summary>
@@ -165,6 +178,35 @@ namespace PathPoint
             }
             PathwayType = pathwayType;
             Ease = ease;
+            Segment = segment;
+            UpdatePathDatas();
+        }
+
+        /// <summary>
+        /// 更新路线类型
+        /// </summary>
+        /// <param name="pathwayType"></param>
+        public void UpdatePathwayType(TPathwayType pathwayType = TPathwayType.Liner)
+        {
+            PathwayType = pathwayType;
+            UpdatePathDatas();
+        }
+
+        /// <summary>
+        /// 更新路线缓动类型
+        /// </summary>
+        /// <param name="pathwayType"></param>
+        public void UpdateEaseType(EasingFunction.Ease ease = EasingFunction.Ease.Linear)
+        {
+            Ease = ease;
+        }
+
+        /// <summary>
+        /// 更新路线每段细分顶点数量
+        /// </summary>
+        /// <param name="segment"></param>
+        public void UpdateSetgmentNum(int segment = 15)
+        {
             Segment = segment;
             UpdatePathDatas();
         }
@@ -275,8 +317,34 @@ namespace PathPoint
         /// </summary>
         public void UpdatePathDatas()
         {
+            UpdateCaculatePathPointDatas();
             UpdatePathLengthDatas();
             UpdateSegmentDatas();
+        }
+
+        /// <summary>
+        /// 更新参与计算的路点数据
+        /// </summary>
+        private void UpdateCaculatePathPointDatas()
+        {
+            CaculatePathPointList.Clear();
+            CaculatePathPointList.AddRange(PathPointList);
+            if (PathwayType == TPathwayType.CRSpline)
+            {
+                // Cutmull-Rom Spline需要构建头尾额外一个点，确保路线经过首尾两个点
+                var maxPointIndex = Mathf.Clamp(PathPointList.Count - 1, 0, Int32.MaxValue);
+                // 只有一个点构不成线段
+                if(maxPointIndex < 1)
+                {
+                    return;
+                }
+                // pMinusOne = 2 * p0 - p1
+                var pMinusOne = 2 * PathPointList[0] - PathPointList[1];
+                // pN = 2 * pNMinusOne - pNMinusTwo
+                var pN = 2 * PathPointList[maxPointIndex] - PathPointList[maxPointIndex - 1];
+                CaculatePathPointList.Insert(0, pMinusOne);
+                CaculatePathPointList.Add(pN);
+            }
         }
 
         /// <summary>
@@ -306,12 +374,12 @@ namespace PathPoint
         {
             RecyleAllSegments();
             mSegmentPointsMap.Clear();
-            var pointNum = PathPointList.Count;
-            if(pointNum == 0)
+            var caculatePointNum = CaculatePathPointList.Count;
+            if(caculatePointNum == 0)
             {
                 return;
             }
-            else if(pointNum == 1)
+            else if(caculatePointNum == 1)
             {
                 var segment = ObjectPool.Singleton.pop<TSegment>();
                 segment.Init(0, 0, 1, 1, PathwayType);
@@ -319,15 +387,18 @@ namespace PathPoint
                 return;
             }
             var segmentPointNum = TPathUtilities.GetSegmentPointNumByType(PathwayType);
-            var pointStep = Mathf.Clamp(segmentPointNum - 1, 0, Int32.MaxValue);
+            var segmentStepNum = TPathUtilities.GetSegmentStepNumByType(PathwayType);
+            var pointStep = Mathf.Clamp(segmentStepNum, 1, Int32.MaxValue);
             var segmentLength = 0f;
-            var maxPointNum = Mathf.Clamp(PathPointList.Count - 1, 0, Int32.MaxValue);
+            var maxPointNum = Mathf.Clamp(caculatePointNum - 1, 0, Int32.MaxValue);
             var distanceAccumulation = 0f;
-            for (int i = 0, length = PathPointList.Count; i < length; i+= pointStep)
+            var segmentNum = GetExpectedSegmentNum();
+            for (int i = 0; i < segmentNum; i++)
             {
+                var pointStartIndex = i * pointStep;
                 segmentLength = 0f;
                 var firstPointPathRatio = distanceAccumulation / Length;
-                for (int j = i, length2 = i + pointStep; j < length2; j++)
+                for (int j = pointStartIndex, length2 = pointStartIndex + pointStep; j < length2; j++)
                 {
                     var pointDistanceIndex = Mathf.Clamp(j, 0, maxPointNum);
                     var pointDistance = GetPointDistanceByIndex(pointDistanceIndex);
@@ -336,9 +407,39 @@ namespace PathPoint
                 }
                 var lastPointPathRatio = distanceAccumulation / Length;
                 var segment = ObjectPool.Singleton.pop<TSegment>();
-                segment.Init(i, segmentLength, firstPointPathRatio, lastPointPathRatio, PathwayType);
+                segment.Init(pointStartIndex, segmentLength, firstPointPathRatio, lastPointPathRatio, PathwayType);
                 SegmentList.Add(segment);
             }
+        }
+
+        /// <summary>
+        /// 获取当前分段数量
+        /// </summary>
+        /// <returns></returns>
+        public int GetSegmentNum()
+        {
+            return SegmentList.Count;
+        }
+
+        /// <summary>
+        /// 获取预期的分段数量
+        /// </summary>
+        /// <returns></returns>
+        private int GetExpectedSegmentNum()
+        {
+            var caculatePointNum = CaculatePathPointList.Count;
+            if (caculatePointNum == 0)
+            {
+                return 0;
+            }
+            else if (caculatePointNum == 1)
+            {
+                return 1;
+            }
+            var segmentPointNum = TPathUtilities.GetSegmentPointNumByType(PathwayType);
+            var segmentStepNum = TPathUtilities.GetSegmentStepNumByType(PathwayType);
+            var segmentNum = Mathf.CeilToInt((caculatePointNum - segmentPointNum + 1) * 1.0f / segmentStepNum);
+            return segmentNum;
         }
 
         /// <summary>
@@ -372,6 +473,10 @@ namespace PathPoint
             {
                 return GetCubicBezierPointAt(t);
             }
+            else if(PathwayType == TPathwayType.CRSpline)
+            {
+                return GetCRSplinePointAt(t);
+            }
             else
             {
                 Debug.LogError($"不支持的路线类型:{PathwayType.ToString()}，获取指定比例路点位置失败！");
@@ -400,26 +505,32 @@ namespace PathPoint
             Vector3[] subPoints;
             if(!mSegmentPointsMap.TryGetValue(segmentIndex, out subPoints))
             {
-                var maxPointIndex = PathPointList.Count - 1;
+                var maxPointIndex = CaculatePathPointList.Count - 1;
                 var firstPointIndex = SegmentList[segmentIndex].StartPointIndex;
                 var secondPointIndex = Mathf.Clamp(firstPointIndex + 1, 0, maxPointIndex);
                 if(PathwayType == TPathwayType.Liner)
                 {
-                    // 直线没必要细分过多的点，这里强制直线每段细分数为1
-                    subPoints = BezierUtilities.GetLinerList(PathPointList[firstPointIndex], PathPointList[secondPointIndex], 1);
+                    subPoints = BezierUtilities.GetLinerList(CaculatePathPointList[firstPointIndex], CaculatePathPointList[secondPointIndex], Segment);
                 }
                 else if(PathwayType == TPathwayType.Bezier)
                 {
                     var thirdPointIndex = Mathf.Clamp(firstPointIndex + 2, 0, maxPointIndex);
-                    subPoints = BezierUtilities.GetBeizerList(PathPointList[firstPointIndex], PathPointList[secondPointIndex],
-                                                               PathPointList[thirdPointIndex], Segment);
+                    subPoints = BezierUtilities.GetBeizerList(CaculatePathPointList[firstPointIndex], CaculatePathPointList[secondPointIndex],
+                                                               CaculatePathPointList[thirdPointIndex], Segment);
                 }
                 else if(PathwayType == TPathwayType.CubicBezier)
                 {
                     var thirdPointIndex = Mathf.Clamp(firstPointIndex + 2, 0, maxPointIndex);
                     var fourthPointIndex = Mathf.Clamp(firstPointIndex + 3, 0, maxPointIndex);
-                    subPoints = BezierUtilities.GetCubicBeizerList(PathPointList[firstPointIndex], PathPointList[secondPointIndex],
-                                                                    PathPointList[thirdPointIndex], PathPointList[fourthPointIndex], Segment);
+                    subPoints = BezierUtilities.GetCubicBeizerList(CaculatePathPointList[firstPointIndex], CaculatePathPointList[secondPointIndex],
+                                                                    CaculatePathPointList[thirdPointIndex], CaculatePathPointList[fourthPointIndex], Segment);
+                }
+                else if(PathwayType == TPathwayType.CRSpline)
+                {
+                    var thirdPointIndex = Mathf.Clamp(firstPointIndex + 2, 0, maxPointIndex);
+                    var fourthPointIndex = Mathf.Clamp(firstPointIndex + 3, 0, maxPointIndex);
+                    subPoints = BezierUtilities.GetCRSplineList(CaculatePathPointList[firstPointIndex], CaculatePathPointList[secondPointIndex],
+                                                                    CaculatePathPointList[thirdPointIndex], CaculatePathPointList[fourthPointIndex], Segment);
                 }
                 else
                 {
@@ -479,42 +590,13 @@ namespace PathPoint
         }
 
         /// <summary>
-        /// 检查分段数据有效性
-        /// </summary>
-        /// <returns></returns>
-        private bool CheckSegmentNumValidation()
-        {
-            // 路点数量为0，分段数量为0
-            // 路点数量为1，分段数量为1
-            // 路点数量>1，分段数量 = Mathf.CellToInt((路点数量 - 1) /  (N(Bezier曲线的顶点数) - 1))
-            var pointNum = PathPointList.Count;
-            var segmentNum = SegmentList.Count;
-            if (pointNum == 0)
-            {
-                return segmentNum == 0;
-            }
-            var segmentPointNum = TPathUtilities.GetSegmentPointNumByType(PathwayType);
-            if (pointNum <= segmentPointNum)
-            {
-                return segmentNum == 1;
-            }
-            var segmentExpectedNum = Mathf.CeilToInt((pointNum - 1) / (float)(segmentPointNum - 1));
-            var result = segmentNum == segmentExpectedNum;
-            if (!result)
-            {
-                Debug.LogWarning($"路径分段数量:{segmentNum}和顶点数量:{pointNum}对不上！");
-            }
-            return result;
-        }
-
-        /// <summary>
         /// 获取线性路线指定比例路点位置
         /// </summary>
         /// <param name="t"></param>
         /// <returns></returns>
         private Vector3 GetLinerPoinAt(float t)
         {
-            var pointNum = PathPointList.Count;
+            var pointNum = CaculatePathPointList.Count;
             var maxPointIndex = pointNum - 1;
             TSegment currentUnderSegment;
             float currentUnderSegmentPercent;
@@ -525,7 +607,7 @@ namespace PathPoint
             }
             var firstPointIndex = currentUnderSegment.StartPointIndex;
             var secondPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 1, 0, maxPointIndex);
-            return BezierUtilities.CaculateLinerPoint(PathPointList[firstPointIndex], PathPointList[secondPointIndex], currentUnderSegmentPercent);
+            return BezierUtilities.CaculateLinerPoint(CaculatePathPointList[firstPointIndex], CaculatePathPointList[secondPointIndex], currentUnderSegmentPercent);
         }
 
         /// <summary>
@@ -535,7 +617,7 @@ namespace PathPoint
         /// <returns></returns>
         private Vector3 GetBezierPointAt(float t)
         {
-            var pointNum = PathPointList.Count;
+            var pointNum = CaculatePathPointList.Count;
             var maxPointIndex = pointNum - 1;
             TSegment currentUnderSegment;
             float currentUnderSegmentPercent;
@@ -547,9 +629,9 @@ namespace PathPoint
             var firstPointIndex = currentUnderSegment.StartPointIndex;
             var secondPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 1, 0, maxPointIndex);
             var thirdPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 2, 0, maxPointIndex);
-            return BezierUtilities.CaculateBezierPoint(PathPointList[firstPointIndex], 
-                                                       PathPointList[secondPointIndex],
-                                                       PathPointList[thirdPointIndex],
+            return BezierUtilities.CaculateBezierPoint(CaculatePathPointList[firstPointIndex],
+                                                       CaculatePathPointList[secondPointIndex],
+                                                       CaculatePathPointList[thirdPointIndex],
                                                        currentUnderSegmentPercent);
         }
 
@@ -560,7 +642,7 @@ namespace PathPoint
         /// <returns></returns>
         private Vector3 GetCubicBezierPointAt(float t)
         {
-            var pointNum = PathPointList.Count;
+            var pointNum = CaculatePathPointList.Count;
             var maxPointIndex = pointNum - 1;
             TSegment currentUnderSegment;
             float currentUnderSegmentPercent;
@@ -573,10 +655,37 @@ namespace PathPoint
             var secondPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 1, 0, maxPointIndex);
             var thirdPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 2, 0, maxPointIndex);
             var fourthPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 3, 0, maxPointIndex);
-            return BezierUtilities.CaculateCubicBezierPoint(PathPointList[firstPointIndex],
-                                                            PathPointList[secondPointIndex],
-                                                            PathPointList[thirdPointIndex],
-                                                            PathPointList[fourthPointIndex],
+            return BezierUtilities.CaculateCubicBezierPoint(CaculatePathPointList[firstPointIndex],
+                                                            CaculatePathPointList[secondPointIndex],
+                                                            CaculatePathPointList[thirdPointIndex],
+                                                            CaculatePathPointList[fourthPointIndex],
+                                                            currentUnderSegmentPercent);
+        }
+
+        /// <summary>
+        /// 获取Cutmull-Roll Spline路线指定比例路点位置
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        private Vector3 GetCRSplinePointAt(float t)
+        {
+            var pointNum = CaculatePathPointList.Count;
+            var maxPointIndex = pointNum - 1;
+            TSegment currentUnderSegment;
+            float currentUnderSegmentPercent;
+            GetRadioSegmentAndPercent(t, out currentUnderSegment, out currentUnderSegmentPercent);
+            if (currentUnderSegment == null)
+            {
+                return Vector3.zero;
+            }
+            var firstPointIndex = currentUnderSegment.StartPointIndex;
+            var secondPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 1, 0, maxPointIndex);
+            var thirdPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 2, 0, maxPointIndex);
+            var fourthPointIndex = Mathf.Clamp(currentUnderSegment.StartPointIndex + 3, 0, maxPointIndex);
+            return BezierUtilities.CaculateCRSplinePoint(CaculatePathPointList[firstPointIndex],
+                                                            CaculatePathPointList[secondPointIndex],
+                                                            CaculatePathPointList[thirdPointIndex],
+                                                            CaculatePathPointList[fourthPointIndex],
                                                             currentUnderSegmentPercent);
         }
 

@@ -74,6 +74,7 @@ namespace PathPoint
         /// 每段顶点细分数量
         /// </summary>
         [Header("每段顶点细分数量")]
+        [Range(1, 100)]
         public int Segment = 15;
 
         /// <summary>
@@ -82,6 +83,12 @@ namespace PathPoint
         [Header("路点球体大小")]
         [Range(0.1f, 10f)]
         public float PathPointSphereSize = 0.5f;
+
+        /// <summary>
+        /// LineRenderer绘制组件
+        /// </summary>
+        [Header("LineRenderer绘制组件")]
+        public LineRenderer DrawLineRenderer;
 
         /// <summary>
         /// 路点球体颜色
@@ -120,7 +127,6 @@ namespace PathPoint
 
         private void Awake()
         {
-            InitPathPointParentNode();
             CheckPathPointParentNode();
         }
 
@@ -150,12 +156,11 @@ namespace PathPoint
         {
             if (mPathPointParentNode == null)
             {
-                InitPathPointParentNode();
-            }
-            if (mPathPointParentNode != null && mPathPointParentNode.parent != transform)
-            {
-                mPathPointParentNode.SetParent(transform);
-                mPathPointParentNode.localPosition = Vector3.zero;
+                mPathPointParentNode = transform.Find(PathPointParentNodeName);
+                if(mPathPointParentNode == null)
+                {
+                    InitPathPointParentNode();
+                }
             }
         }
 

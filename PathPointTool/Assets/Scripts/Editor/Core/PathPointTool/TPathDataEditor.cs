@@ -75,6 +75,11 @@ namespace PathPoint
         private SerializedProperty mPathPointSphereSizeProperty;
 
         /// <summary>
+        /// DrawLineRenderer属性
+        /// </summary>
+        private SerializedProperty mDrawLineRendererProperty;
+
+        /// <summary>
         /// PathPointSphereColor属性
         /// </summary>
         private SerializedProperty mPathPointSphereColorProperty;
@@ -103,6 +108,11 @@ namespace PathPoint
         /// 路径相关属性变化
         /// </summary>
         private bool mPathPointRelativePropertyChange;
+
+        /// <summary>
+        /// 绘制路点所需的路线对象
+        /// </summary>
+        private TPath mDrawPath = new TPath();
 
         /// <summary>
         /// 绘制的路点列表
@@ -155,6 +165,7 @@ namespace PathPoint
             mPathPointGapProperty ??= serializedObject.FindProperty("PathPointGap");
             mSegmentProperty ??= serializedObject.FindProperty("Segment");
             mPathPointSphereSizeProperty ??= serializedObject.FindProperty("PathPointSphereSize");
+            mDrawLineRendererProperty ??= serializedObject.FindProperty("DrawLineRenderer");
             mPathPointSphereColorProperty ??= serializedObject.FindProperty("PathPointSphereColor");
             mPathDrawColorProperty ??= serializedObject.FindProperty("PathDrawColor");
             mSubPathPointDrawColorProperty ??= serializedObject.FindProperty("SubPathPointDrawColor");
@@ -212,14 +223,22 @@ namespace PathPoint
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(mPathPointGapProperty);
+            EditorGUILayout.PropertyField(mSegmentProperty);
             if (EditorGUI.EndChangeCheck())
             {
                 CorrectPathPointPositions();
                 mPathPointRelativePropertyChange = true;
             }
 
-            EditorGUILayout.PropertyField(mSegmentProperty);
             EditorGUILayout.PropertyField(mPathPointSphereSizeProperty);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(mDrawLineRendererProperty);
+            if(EditorGUI.EndChangeCheck())
+            {
+                OnDrawLineRendererChange();
+            }
+
             EditorGUILayout.PropertyField(mPathPointSphereColorProperty);
             EditorGUILayout.PropertyField(mPathDrawColorProperty);
             EditorGUILayout.PropertyField(mSubPathPointDrawColorProperty);
@@ -368,98 +387,44 @@ namespace PathPoint
         /// </summary>
         private void UpdateDrawDatas()
         {
-            if(mPathwayTypeProperty.intValue == (int)TPathwayType.Liner)
+            var pathwayType = (TPathwayType)mPathwayTypeProperty.intValue;
+            if (pathwayType == TPathwayType.Liner ||
+                pathwayType == TPathwayType.Bezier ||
+                pathwayType == TPathwayType.CubicBezier ||
+                pathwayType == TPathwayType.CRSpline)
             {
-                UpdatePathDrawLineDatas();
-            }
-            else if(mPathwayTypeProperty.intValue == (int)TPathwayType.Bezier)
-            {
-                UpdatePathDrawBezierDatas();
-            }
-            else if(mPathwayTypeProperty.intValue == (int)TPathwayType.CubicBezier)
-            {
-                UpdatePathDrawCubicBezierDatas();
+                mDrawPath.Reset();
+                mDrawPath.UpdatePathwayType(pathwayType);
+                mDrawPath.UpdateSetgmentNum(mSegmentProperty.intValue);
+                for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i++)
+                {
+                    var pathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(i);
+                    if (pathPointProperty.objectReferenceValue != null)
+                    {
+                        var pathPointTransform = pathPointProperty.objectReferenceValue as Transform;
+                        mDrawPath.AddPoint(pathPointTransform.position, false);
+                    }
+                }
+                mDrawPath.UpdatePathDatas();
+
+                mDrawPathPointList.Clear();
+                var segmentNum = mDrawPath.GetSegmentNum();
+                for(int i = 0; i < segmentNum; i++)
+                {
+                    // 前一段和后一段的起始点是重复的，需要剔除
+                    var segmentSubPoints = mDrawPath.GetSubPointsBySegmentIndex(i);
+                    var segmentSubPointStartIndex = i != 0 ? 1 : 0;
+                    for(int j = segmentSubPointStartIndex, length2 = segmentSubPoints.Length; j < length2; j++)
+                    {
+                        mDrawPathPointList.Add(segmentSubPoints[j]);
+                    }
+                }
+                UpdateLineRendererDatas();
             }
             else
             {
                 var pathWayType = (TPathwayType)mPathwayTypeProperty.intValue;
                 Debug.LogError($"不支持的路线类型:{pathWayType.ToString()}，更新绘制数据失败！");
-            }
-        }
-
-        /// <summary>
-        /// 更新线性绘制数据
-        /// </summary>
-        private void UpdatePathDrawLineDatas()
-        {
-            mDrawPathPointList.Clear();
-            for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i++)
-            {
-                var pathPointProperty = mPathPointListProperty.GetArrayElementAtIndex(i);
-                if (pathPointProperty.objectReferenceValue != null)
-                {
-                    var pathPointTransform = pathPointProperty.objectReferenceValue as Transform;
-                    mDrawPathPointList.Add(pathPointTransform.position);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 更新二阶Bezier绘制数据
-        /// </summary>
-        private void UpdatePathDrawBezierDatas()
-        {
-            mDrawPathPointList.Clear();
-            var segmentNum = mSegmentProperty.intValue;
-            var maxPathPointIndex = Mathf.Clamp(mPathPointListProperty.arraySize - 1, 0, int.MaxValue);
-            for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i += 2)
-            {
-                if (i == maxPathPointIndex)
-                {
-                    continue;
-                }
-                var firstIndex = i;
-                var secondIndex = Mathf.Clamp(i + 1, 0, maxPathPointIndex);
-                var thirdIndex = Mathf.Clamp(i + 2, 0, maxPathPointIndex);
-                var firstProperty = mPathPointListProperty.GetArrayElementAtIndex(firstIndex);
-                var secondProperty = mPathPointListProperty.GetArrayElementAtIndex(secondIndex);
-                var thirdProperty = mPathPointListProperty.GetArrayElementAtIndex(thirdIndex);
-                var firstTransform = firstProperty.objectReferenceValue as Transform;
-                var secondTransform = secondProperty.objectReferenceValue as Transform;
-                var thirdTransform = thirdProperty.objectReferenceValue as Transform;
-                var bezierPoints = BezierUtilities.GetBeizerList(firstTransform.position, secondTransform.position, thirdTransform.position, segmentNum);
-                mDrawPathPointList.AddRange(bezierPoints);
-            }
-        }
-
-        /// <summary>
-        /// 更新三阶Bezier绘制数据
-        /// </summary>
-        private void UpdatePathDrawCubicBezierDatas()
-        {
-            mDrawPathPointList.Clear();
-            var segmentNum = mSegmentProperty.intValue;
-            var maxPathPointIndex = Mathf.Clamp(mPathPointListProperty.arraySize - 1, 0, int.MaxValue);
-            for (int i = 0, length = mPathPointListProperty.arraySize; i < length; i += 3)
-            {
-                if (i == maxPathPointIndex)
-                {
-                    continue;
-                }
-                var firstIndex = i;
-                var secondIndex = Mathf.Clamp(i + 1, 0, maxPathPointIndex);
-                var thirdIndex = Mathf.Clamp(i + 2, 0, maxPathPointIndex);
-                var fourthIndex = Mathf.Clamp(i + 3, 0, maxPathPointIndex);
-                var firstProperty = mPathPointListProperty.GetArrayElementAtIndex(firstIndex);
-                var secondProperty = mPathPointListProperty.GetArrayElementAtIndex(secondIndex);
-                var thirdProperty = mPathPointListProperty.GetArrayElementAtIndex(thirdIndex);
-                var fourthProperty = mPathPointListProperty.GetArrayElementAtIndex(fourthIndex);
-                var firstTransform = firstProperty.objectReferenceValue as Transform;
-                var secondTransform = secondProperty.objectReferenceValue as Transform;
-                var thirdTransform = thirdProperty.objectReferenceValue as Transform;
-                var fourthTransform = fourthProperty.objectReferenceValue as Transform;
-                var bezierPoints = BezierUtilities.GetCubicBeizerList(firstTransform.position, secondTransform.position, thirdTransform.position, fourthTransform.position, segmentNum);
-                mDrawPathPointList.AddRange(bezierPoints);
             }
         }
 
@@ -552,6 +517,29 @@ namespace PathPoint
                 }
             }
             Debug.Log($"路点位置矫正完成！");
+        }
+
+        /// <summary>
+        /// 响应绘制LinerRenderer组件变化
+        /// </summary>
+        private void OnDrawLineRendererChange()
+        {
+            UpdateLineRendererDatas();
+        }
+
+        /// <summary>
+        /// 更新LineRenderer组件数据
+        /// </summary>
+        private void UpdateLineRendererDatas()
+        {
+            Debug.Log($"更新LineRenderer组件数据！");
+            var drawLineRenderer = mDrawLineRendererProperty.objectReferenceValue as LineRenderer;
+            if (drawLineRenderer != null)
+            {
+                drawLineRenderer.positionCount = mDrawPathPointList.Count;
+                drawLineRenderer.SetPositions(mDrawPathPointList.ToArray());
+                drawLineRenderer.textureMode = LineTextureMode.Tile;
+            }
         }
 
         /// <summary>

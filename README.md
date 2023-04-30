@@ -4,11 +4,11 @@
 需求:
 
 1. 纯Editor非运行时路点编辑器。
-2. 路点编辑器需要生成可视化编辑对象和路点路线展示。
+2. 路点编辑器需要生成可视化编辑对象和路点路线展示(支持纯Editor绘制和LineRenderer组件绘制两种方式)。
 3. 路点编辑器要支持指定起始位置和固定位置偏移的路点编辑自动矫正(方便固定单位间隔的路点配置)。
 4. 路点编辑器要支持指定路线移动时长，是否循环和是否自动更新朝向等路线缓动模拟设置。
 5. 路点编辑器要支持自定义数据导出自定义格式数据。
-6. 路点编辑器要支持多种路线类型(e.g. 直线，Bezier，CubicBezier等)。
+6. 路点编辑器要支持多种路线类型(e.g. Line，Bezier，CubicBezier， Cutmull-Rom Spline等)。
 7. 路线移动支持缓动曲线配置。
 8. 路点编辑器要支持纯Editor模拟运行路点移动效果。
 9. 路点编辑器编辑完成后的数据要支持运行时使用并模拟路线缓动，同时路线缓动要支持纯运行时构建使用。
@@ -17,7 +17,7 @@
 实现思路：
 
 1. 结合自定义Inspector面板(继承Editor)定义的方式实现纯Editor配置和操作
-2. 利用Gizmos(Monobehaviour:OnDrawGizmos())，Handles(Editor.OnSceneGUI())和自定义Inspector(Editor)面板编辑操作实现可视化编辑对象生成和展示。
+2. 利用Gizmos(Monobehaviour:OnDrawGizmos())，Handles(Editor.OnSceneGUI())和自定义Inspector(Editor)面板编辑操作实现可视化编辑对象生成和展示。LineRenderer通过挂在指定LinRenderer组件将路点细分的点通过LineRenderer:SetPositions()设置显示。
 3. 利用自定义Inspector面板支持起始位置和路点间隔配置，然后通过配置数据进行路点位置矫正操作。
 4. 自定义Inspecotr面板支持配置即可。
 5. 同上，自定义Inspector面板支持操作分析路点数据进行导出即可。
@@ -46,6 +46,10 @@
 Ease插值类型：
 
 ![EaseLerpFunction](/img/Unity/Math/EaseLerpFunction.png)
+
+LineRenderer可视化展示：
+
+![CutmullRomSplineDraw](/img/Unity/PathPointTool/CutmullRomSplineDraw.PNG)
 
 M个点的N个3阶Bezier插值计算思路如下：
 
