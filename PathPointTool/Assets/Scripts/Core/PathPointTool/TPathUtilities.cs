@@ -24,6 +24,20 @@ namespace PathPoint
         private static int PathTweenerUID = 0;
 
         /// <summary>
+        /// 默认绘制Icon
+        /// </summary>
+        private const string DEFAULT_DRAW_ICON = "PathPointTool/pathpoint";
+
+        /// <summary>
+        /// 路点类型和绘制Icon映射Map<路点类型, 绘制Icon>
+        /// </summary>
+        private static Dictionary<TPathPointType, string> mPathTypeDrawIconMap = new Dictionary<TPathPointType, string>()
+        {
+            { TPathPointType.Invalide, "PathPointTool/invalide" },
+            { TPathPointType.Normal, "PathPointTool/pathpoint" },
+        };
+
+        /// <summary>
         /// 获取下一个有效TPathTweener UID
         /// </summary>
         /// <returns></returns>
@@ -134,6 +148,21 @@ namespace PathPoint
                 Debug.LogError($"不支持的路线类型:{pathwayType.ToString()}，获取路线分段步长失败！");
                 return 0;
             }
+        }
+
+        /// <summary>
+        /// 获取指定路点类型的绘制Icon
+        /// </summary>
+        /// <param name="pathPointType"></param>
+        /// <returns></returns>
+        public static string GetDrawIconByPathPointType(TPathPointType pathPointType)
+        {
+            var drawIcon = DEFAULT_DRAW_ICON;
+            if(!mPathTypeDrawIconMap.TryGetValue(pathPointType, out drawIcon))
+            {
+                Debug.LogError($"找不到路点类型:{pathPointType}的绘制Icon！");
+            }
+            return drawIcon;
         }
     }
 }

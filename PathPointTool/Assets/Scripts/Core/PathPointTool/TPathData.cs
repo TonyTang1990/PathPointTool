@@ -273,7 +273,8 @@ namespace PathPoint
                 var pathPointData = PathPointDataList[i];
                 if (pathPointData != null)
                 {
-                    Gizmos.DrawIcon(pathPointData.Position, "PathPointTool/pathpoint");
+                    var drawIcon = TPathUtilities.GetDrawIconByPathPointType(pathPointData.PPType);
+                    Gizmos.DrawIcon(pathPointData.Position, drawIcon);
                 }
             }
         }
