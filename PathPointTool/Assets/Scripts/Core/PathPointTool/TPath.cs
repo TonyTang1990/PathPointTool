@@ -439,6 +439,15 @@ namespace PathPoint
             var segmentPointNum = TPathUtilities.GetSegmentPointNumByType(PathwayType);
             var segmentStepNum = TPathUtilities.GetSegmentStepNumByType(PathwayType);
             var segmentNum = Mathf.CeilToInt((caculatePointNum - segmentPointNum + 1) * 1.0f / segmentStepNum);
+            // 多出来的点Bezier曲线需要额外构成一个
+            if(PathwayType == TPathwayType.Bezier || PathwayType == TPathwayType.CubicBezier)
+            {
+                var leftNum = (caculatePointNum - 1) % segmentStepNum;
+                if(leftNum != 0)
+                {
+                    segmentNum++;
+                }
+            }
             return segmentNum;
         }
 
