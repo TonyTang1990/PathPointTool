@@ -17,7 +17,9 @@ namespace PathPoint
     /// 路线缓动管理单例类
     /// </summary>
     [DisallowMultipleComponent]
+#if UNITY_EDITOR
     [InitializeOnLoad]
+#endif
     [ExecuteInEditMode]
     public class TPathTweenerManager : MonoBehaviour
     {
@@ -69,11 +71,12 @@ namespace PathPoint
         {
             Debug.Log($"static TPathTweenerManager.OnInitializedOnLoadMethod()");
             var pathTweenerManager = GameObject.FindObjectOfType<TPathTweenerManager>();
-            if(pathTweenerManager != null)
+            if (pathTweenerManager != null)
             {
                 Debug.Log($"找回场景里TPathTweenerManager单例组件对象！");
                 mSingleton = pathTweenerManager;
                 mSingleton.MembersInit();
+                UnregisterEditorUpdate();
                 RegisterEditorUpdate();
             }
         }
@@ -121,8 +124,11 @@ namespace PathPoint
             }
             MembersInit();
 #if UNITY_EDITOR
-            UnregisterEditorUpdate();
-            RegisterEditorUpdate();
+            if (!Application.isPlaying)
+            {
+                UnregisterEditorUpdate();
+                RegisterEditorUpdate();
+            }
 #endif
         }
 
@@ -134,7 +140,10 @@ namespace PathPoint
             if(mSingleton == this)
             {
 #if UNITY_EDITOR
-                UnregisterEditorUpdate();
+                if (!Application.isPlaying)
+                {
+                    UnregisterEditorUpdate();
+                }
 #endif
                 RemoveAllPathTweens();
                 mSingleton = null;
