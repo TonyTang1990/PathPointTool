@@ -224,18 +224,16 @@ namespace PathPoint
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(mPathPointStartPosProperty);
+            EditorGUILayout.PropertyField(mPathPointGapProperty);
             if (EditorGUI.EndChangeCheck())
             {
-                CorrectPathPointPositions();
-                mPathPointRelativePropertyChange = true;
+                Debug.Log($"路点起始位置或者间距修改够记得通过矫正路点位置功能修复路点位置！");
             }
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(mPathPointGapProperty);
             EditorGUILayout.PropertyField(mSegmentProperty);
             if (EditorGUI.EndChangeCheck())
             {
-                CorrectPathPointPositions();
                 mPathPointRelativePropertyChange = true;
             }
 
@@ -431,14 +429,14 @@ namespace PathPoint
         /// </summary>
         private void UpdateDrawDatas()
         {
-            var pathwayType = (TPathwayType)mPathwayTypeProperty.intValue;
-            if (pathwayType == TPathwayType.Liner ||
-                pathwayType == TPathwayType.Bezier ||
-                pathwayType == TPathwayType.CubicBezier ||
-                pathwayType == TPathwayType.CRSpline)
+            var pathWayType = (TPathwayType)mPathwayTypeProperty.intValue;
+            if (pathWayType == TPathwayType.Liner ||
+                pathWayType == TPathwayType.Bezier ||
+                pathWayType == TPathwayType.CubicBezier ||
+                pathWayType == TPathwayType.CRSpline)
             {
                 mDrawPath.Reset();
-                mDrawPath.UpdatePathwayType(pathwayType);
+                mDrawPath.UpdatePathwayType(pathWayType);
                 mDrawPath.UpdateSetgmentNum(mSegmentProperty.intValue);
                 for (int i = 0, length = mPathPointDataListProperty.arraySize; i < length; i++)
                 {
@@ -464,7 +462,6 @@ namespace PathPoint
             }
             else
             {
-                var pathWayType = (TPathwayType)mPathwayTypeProperty.intValue;
                 Debug.LogError($"不支持的路线类型:{pathWayType.ToString()}，更新绘制数据失败！");
             }
         }
@@ -476,10 +473,13 @@ namespace PathPoint
         {
             if(mDrawSwitchProperty.boolValue)
             {
-                DrawPathPointLabels();
-                DrawPathPointLines();
-                DrawSubPathPointSpheres();
-                DrawPathPointPositionHandles();
+                if(Event.Current.type == EventType.Repaint)
+                {
+                    DrawPathPointLabels();
+                    DrawPathPointLines();
+                    DrawSubPathPointSpheres();
+                    DrawPathPointPositionHandles();
+                }
             }
         }
 
