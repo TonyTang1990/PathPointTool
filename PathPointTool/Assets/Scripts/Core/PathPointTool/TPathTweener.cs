@@ -258,8 +258,11 @@ namespace PathPoint
             Target.position = newPosition;
             if(UpdateForward)
             {
-                var newForward = newPosition - oldPosition;
-                Target.forward = newForward;
+                if(!Vector3.Equals(newPosition, oldPosition))
+                {
+                    var newForward = newPosition - oldPosition;
+                    Target.forward = newForward;
+                }
             }
         }
 
