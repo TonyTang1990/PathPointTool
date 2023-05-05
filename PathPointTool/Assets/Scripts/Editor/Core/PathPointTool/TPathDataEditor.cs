@@ -206,9 +206,8 @@ namespace PathPoint
             // 确保对SerializaedObject和SerializedProperty的数据修改每帧同步
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(mDrawSwitchProperty);
-
             EditorGUILayout.BeginVertical();
+            EditorGUILayout.PropertyField(mDrawSwitchProperty);
             EditorGUILayout.PropertyField(mPathTypeProperty);
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(mPathwayTypeProperty);

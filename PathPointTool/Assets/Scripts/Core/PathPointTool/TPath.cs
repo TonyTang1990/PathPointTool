@@ -470,6 +470,16 @@ namespace PathPoint
         /// <returns></returns>
         public Vector3 GetPointAt(float t)
         {
+            var pointNum = PathPointList.Count;
+            if(pointNum == 0)
+            {
+                Debug.LogError($"没有有效路点数据，获取不到路线指定比例位置！");
+                return Vector3.zero;
+            }
+            else if(pointNum == 1)
+            {
+                return PathPointList[0];
+            }
             if(PathwayType == TPathwayType.Liner)
             {
                 return GetLinerPoinAt(t);
