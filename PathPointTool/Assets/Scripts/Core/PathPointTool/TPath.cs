@@ -374,18 +374,19 @@ namespace PathPoint
         {
             RecyleAllSegments();
             mSegmentPointsMap.Clear();
-            var caculatePointNum = CaculatePathPointList.Count;
-            if(caculatePointNum == 0)
+            var pointNum = PathPointList.Count;
+            if(pointNum == 0)
             {
                 return;
             }
-            else if(caculatePointNum == 1)
+            else if(pointNum == 1)
             {
                 var segment = ObjectPool.Singleton.pop<TSegment>();
                 segment.Init(0, 0, 1, 1, PathwayType);
                 SegmentList.Add(segment);
                 return;
             }
+            var caculatePointNum = CaculatePathPointList.Count;
             var segmentPointNum = TPathUtilities.GetSegmentPointNumByType(PathwayType);
             var segmentStepNum = TPathUtilities.GetSegmentStepNumByType(PathwayType);
             var pointStep = Mathf.Clamp(segmentStepNum, 1, Int32.MaxValue);
