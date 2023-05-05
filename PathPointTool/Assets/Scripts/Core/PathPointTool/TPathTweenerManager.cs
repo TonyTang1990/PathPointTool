@@ -70,10 +70,15 @@ namespace PathPoint
         private static void OnInitializedOnLoadMethod()
         {
             Debug.Log($"static TPathTweenerManager.OnInitializedOnLoadMethod()");
-            var pathTweenerManager = GameObject.FindObjectOfType<TPathTweenerManager>();
+            var pathTweenerManager = GameObject.FindObjectOfType<TPathTweenerManager>(true);
             if (pathTweenerManager != null)
             {
                 Debug.Log($"找回场景里TPathTweenerManager单例组件对象！");
+                if(!pathTweenerManager.gameObject.activeSelf)
+                {
+                    pathTweenerManager.gameObject.SetActive(true);
+                    Debug.Log($"PathTweenerManager单例GameObject处于隐藏状态，激活显示！");
+                }
                 mSingleton = pathTweenerManager;
                 mSingleton.MembersInit();
                 UnregisterEditorUpdate();
