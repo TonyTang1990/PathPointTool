@@ -19,9 +19,9 @@ namespace PathPoint
     public static class TPathUtilities
     {
         /// <summary>
-        /// TPathTweener的UID
+        /// 下一个TPathTweener的UID
         /// </summary>
-        private static int PathTweenerUID = 0;
+        private static int NextPathTweenerUID = 0;
 
         /// <summary>
         /// 默认绘制Icon
@@ -43,7 +43,7 @@ namespace PathPoint
         /// <returns></returns>
         public static int GetNextPathTweenerUID()
         {
-            return PathTweenerUID;
+            return NextPathTweenerUID++;
         }
 
         /// <summary>

@@ -310,7 +310,7 @@ namespace PathPoint
         public bool IsExistTPathTweenerByUID(int uid, out int index)
         {
             index = 0;
-            for (int i = mTPathTweenerList.Count - 1; i >= 0; i++)
+            for (int i = mTPathTweenerList.Count - 1; i >= 0; i--)
             {
                 if (mTPathTweenerList[i].UID == uid)
                 {
