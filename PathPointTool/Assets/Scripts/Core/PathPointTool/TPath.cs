@@ -333,8 +333,8 @@ namespace PathPoint
             {
                 // Cutmull-Rom Spline需要构建头尾额外一个点，确保路线经过首尾两个点
                 var maxPointIndex = Mathf.Clamp(PathPointList.Count - 1, 0, Int32.MaxValue);
-                // 只有一个点构不成线段
-                if(maxPointIndex < 1)
+                // 只有一个点或0个点不成线段
+                if(maxPointIndex <= 1)
                 {
                     return;
                 }
