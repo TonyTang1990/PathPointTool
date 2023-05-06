@@ -76,8 +76,7 @@ namespace PathPoint
                 Debug.Log($"找回场景里TPathTweenerManager单例组件对象！");
                 if(!pathTweenerManager.gameObject.activeSelf)
                 {
-                    pathTweenerManager.gameObject.SetActive(true);
-                    Debug.Log($"PathTweenerManager单例GameObject处于隐藏状态，激活显示！");
+                    Debug.LogWarning($"PathTweenerManager单例GameObject处于隐藏状态！");
                 }
                 mSingleton = pathTweenerManager;
                 mSingleton.MembersInit();
