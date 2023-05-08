@@ -61,10 +61,6 @@ Cutmull-Rom Spline曲线经过首尾两个控制点思路：
 
 1. **利用Catmull-Rom Spline曲线会通过中间两个控制点且中间两个点经过时的切线与前后两个控制点连线平行，那么我可以可以通过模拟构造一个P(-1)=2P0-P1(确保P(-1)P1和P0切线平行从而确保从P0处切线平行)，利用P(-1)P0P1P2构造一个CatmullRomSpline曲线即可画出P0开始的P0P1的曲线。最后一段曲线同理，构造一个P(N+1)=2P(N)-P(N-1)，然后绘制P(N-2)P(N-1)P(N)P(N+1)即可绘制出P(N-1)P(N)的曲线。**
 
-TODO:
-
-1. **将运行时使用TPathTweenerManager运动的曲线支持可配置化可视化绘制**
-
 ## 博客
 
 [路点编辑和缓动](http://tonytang1990.github.io/2023/04/09/PathPointTool/)
