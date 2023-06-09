@@ -477,8 +477,8 @@ namespace PathPoint
                     DrawPathPointLabels();
                     DrawPathPointLines();
                     DrawSubPathPointSpheres();
-                    DrawPathPointPositionHandles();
                 }
+                DrawPathPointPositionHandles();
             }
         }
 
