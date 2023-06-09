@@ -472,7 +472,7 @@ namespace PathPoint
         {
             if(mDrawSwitchProperty.boolValue)
             {
-                if(Event.Current.type == EventType.Repaint)
+                if(Event.current.type == EventType.Repaint)
                 {
                     DrawPathPointLabels();
                     DrawPathPointLines();
