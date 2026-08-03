@@ -1,0 +1,161 @@
+{
+    "PathType": 1,
+    "PathwayType": 2,
+    "Ease": 21,
+    "IsLoop": false,
+    "UpdateForward": true,
+    "Duration": 10.0,
+    "Segment": 15,
+    "PathPointDatas": [
+        {
+            "Position": {
+                "x": 20.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 20.0,
+                "y": 0.0,
+                "z": 3.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 23.0,
+                "y": 0.0,
+                "z": 3.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 26.0,
+                "y": 0.0,
+                "z": 3.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 26.0,
+                "y": 0.0,
+                "z": 6.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 26.0,
+                "y": 0.0,
+                "z": 9.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 26.0,
+                "y": 0.0,
+                "z": 12.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 26.0,
+                "y": 0.0,
+                "z": 15.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 29.0,
+                "y": 0.0,
+                "z": 15.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 32.0,
+                "y": 0.0,
+                "z": 15.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 32.0,
+                "y": 0.0,
+                "z": 18.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 32.0,
+                "y": 0.0,
+                "z": 21.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 35.0,
+                "y": 0.0,
+                "z": 21.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 38.0,
+                "y": 0.0,
+                "z": 21.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        },
+        {
+            "Position": {
+                "x": 38.0,
+                "y": 0.0,
+                "z": 18.0
+            },
+            "PathPointType": 2,
+            "WaitTime": 0.0,
+            "JumpAnimName": ""
+        }
+    ]
+}

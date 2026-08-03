@@ -18,5 +18,7 @@ namespace PathPoint
     {
         Invalide = 1,       // 无效路点
         Normal,             // 普通路点类型
+        Wait,               // 等待路点类型
+        Jump,               // 跳跃路点类型
     }
 }

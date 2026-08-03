@@ -175,6 +175,32 @@ namespace PathPoint
         }
 
         /// <summary>
+        /// 指定路点数据导出对象路线移动
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="pathDataExport"></param>
+        /// <param name="completeCB"></param>
+        /// <param name="pointPassCB"></param>
+        /// <param name="loopStartCB"></param>
+        /// <returns></returns>
+        public TPathTweener DoPathTweenByTPathDataExport(Transform target, TPathDataExport pathDataExport,
+                                                         Action completeCB = null, Action<int> pointPassCB = null,
+                                                         Action loopStartCB = null)
+        {
+            if(pathDataExport == null)
+            {
+                Debug.LogError($"不允许对空的TPathDataExport对象进行路线缓动！");
+                return null;
+            }
+            var pathPointPosList = pathDataExport.GetPathPointPosList();
+            return DoPathTweenByPoints(target, pathPointPosList, pathDataExport.Duration,
+                                       pathDataExport.IsLoop, pathDataExport.UpdateForward,
+                                       completeCB, pointPassCB, loopStartCB,
+                                       pathDataExport.PathwayType, pathDataExport.Ease,
+                                       pathDataExport.Segment);
+        }
+
+        /// <summary>
         /// 指定路点列表路线移动
         /// </summary>
         /// <param name="target"></param>
@@ -183,13 +209,19 @@ namespace PathPoint
         /// <param name="isLoop"></param>
         /// <param name="updateFoward"></param>
         /// <param name="completeCB"></param>
+        /// <param name="pointPassCB"></param>
+        /// <param name="loopStartCB"></param>
         /// <param name="pathwayType"></param>
+        /// <param name="ease"></param>
         /// <param name="segment"></param>
         /// <returns></returns>
-        public TPathTweener DoPathTweenByPoints(Transform target, IEnumerable<Vector3> points, float duration,
-                                                bool isLoop = false, bool updateFoward = false, Action completeCB = null,
+        public TPathTweener DoPathTweenByPoints(Transform target, IEnumerable<Vector3> points,
+                                                float duration, bool isLoop = false,
+                                                bool updateFoward = false, Action completeCB = null,
+                                                Action<int> pointPassCB = null, Action loopStartCB = null,
                                                 TPathwayType pathwayType = TPathwayType.Liner,
-                                                EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
+                                                EasingFunction.Ease ease = EasingFunction.Ease.Linear,
+                                                int segment = 10)
         {
             if (target == null)
             {
@@ -197,7 +229,10 @@ namespace PathPoint
                 return null;
             }
             var tpathTweener = ObjectPool.Singleton.pop<TPathTweener>();
-            tpathTweener.InitByPoints(target, points, duration, pathwayType, isLoop, updateFoward, completeCB, ease, segment);
+            tpathTweener.InitByPoints(target, points, duration, pathwayType,
+                                      isLoop, updateFoward, completeCB,
+                                      pointPassCB, loopStartCB,
+                                      ease, segment);
             AddTPathTPathTweener(tpathTweener);
             return tpathTweener;
         }
@@ -211,11 +246,16 @@ namespace PathPoint
         /// <param name="isLoop"></param>
         /// <param name="updateFoward"></param>
         /// <param name="completeCB"></param>
+        /// <param name="pointPassCB"></param>
+        /// <param name="loopStartCB"></param>
         /// <param name="pathwayType"></param>
+        /// <param name="ease"></param>
         /// <param name="segment"></param>
         /// <returns></returns>
-        public TPathTweener DoPathTweenByTransforms(Transform target, IEnumerable<Transform> transforms, float duration,
-                                                    bool isLoop = false, bool updateFoward = false, Action completeCB = null,
+        public TPathTweener DoPathTweenByTransforms(Transform target, IEnumerable<Transform> transforms,
+                                                    float duration, bool isLoop = false,
+                                                    bool updateFoward = false, Action completeCB = null,
+                                                    Action<int> pointPassCB = null, Action loopStartCB = null,
                                                     TPathwayType pathwayType = TPathwayType.Liner,
                                                     EasingFunction.Ease ease = EasingFunction.Ease.Linear, int segment = 10)
         {
@@ -225,7 +265,10 @@ namespace PathPoint
                 return null;
             }
             var tpathTweener = ObjectPool.Singleton.pop<TPathTweener>();
-            tpathTweener.InitByTransforms(target, transforms, duration, pathwayType, isLoop, updateFoward, completeCB, ease, segment);
+            tpathTweener.InitByTransforms(target, transforms, duration, pathwayType,
+                                          isLoop, updateFoward, completeCB,
+                                          pointPassCB, loopStartCB,
+                                          ease, segment);
             AddTPathTPathTweener(tpathTweener);
             return tpathTweener;
         }
@@ -298,7 +341,7 @@ namespace PathPoint
         /// </summary>
         private void RemoveAllPathTweens()
         {
-            for (int i = mTPathTweenerList.Count - 1; i >= 0; i++)
+            for (int i = mTPathTweenerList.Count - 1; i >= 0; i--)
             {
                 ObjectPool.Singleton.push<TPathTweener>(mTPathTweenerList[i]);
             }

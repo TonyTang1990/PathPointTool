@@ -28,18 +28,47 @@ namespace PathPoint
         /// 路点类型
         /// </summary>
         [Header("路点类型")]
-        public TPathPointType PPType = TPathPointType.Normal;
+        public TPathPointType PathPointType = TPathPointType.Normal;
 
+        /// <summary>
+        /// 等待路点的等待时长
+        /// </summary>
+        [Header("等待路点的等待时长")]
+        public float WaitTime = 0f;
+
+        /// <summary>
+        /// 跳跃路点的跳跃动画名称
+        /// </summary>
+        [Header("跳跃路点的跳跃动画名称")]
+        public string JumpAnimName = string.Empty;
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
         public TPathPointData()
         {
             Position = Vector3.zero;
-            PPType = TPathPointType.Normal;
+            PathPointType = TPathPointType.Normal;
         }
 
-        public TPathPointData(Vector3 position, TPathPointType ppType = TPathPointType.Normal)
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="pathPointType"></param>
+        public TPathPointData(Vector3 position, TPathPointType pathPointType = TPathPointType.Normal)
         {
             Position = position;
-            PPType = ppType;
+            PathPointType = pathPointType;
+        }
+
+        /// <summary>
+        /// 重写ToString方法
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"Position:{Position}, PathPointType:{PathPointType}, WaitTime:{WaitTime}, JumpAnimName:{JumpAnimName}";
         }
     }
 }

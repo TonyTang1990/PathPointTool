@@ -26,6 +26,16 @@ namespace PathPoint
         private TPathData mTarget;
 
         /// <summary>
+        /// ExportFileName属性
+        /// </summary>
+        private SerializedProperty mExportFileNameProperty;
+
+        /// <summary>
+        /// ExportType属性
+        /// </summary>
+        private SerializedProperty mExportTypeProperty;
+
+        /// <summary>
         /// DrawSwitch属性
         /// </summary>
         private SerializedProperty mDrawSwitchProperty;
@@ -161,6 +171,8 @@ namespace PathPoint
         /// </summary>
         private void InitProperties()
         {
+            mExportFileNameProperty ??= serializedObject.FindProperty("ExportFileName");
+            mExportTypeProperty ??= serializedObject.FindProperty("ExportType");
             mDrawSwitchProperty ??= serializedObject.FindProperty("DrawSwitch");
             mPathTypeProperty ??= serializedObject.FindProperty("PathType");
             mPathwayTypeProperty ??= serializedObject.FindProperty("PathwayType");
@@ -207,6 +219,8 @@ namespace PathPoint
             serializedObject.Update();
 
             EditorGUILayout.BeginVertical();
+            EditorGUILayout.PropertyField(mExportFileNameProperty);
+            EditorGUILayout.PropertyField(mExportTypeProperty);
             EditorGUILayout.PropertyField(mDrawSwitchProperty);
             EditorGUILayout.PropertyField(mPathTypeProperty);
             EditorGUI.BeginChangeCheck();
@@ -353,8 +367,23 @@ namespace PathPoint
         private void DrawOnePathPointDataPropertyByIndex(int pathPointDataIndex)
         {
             var pathPointDataProperty = mPathPointDataListProperty.GetArrayElementAtIndex(pathPointDataIndex);
+            DrawPathPointPositionProperty(pathPointDataIndex, pathPointDataProperty);
+            DrawPathPointTypeProperty(pathPointDataIndex, pathPointDataProperty);
+            DrawPathPointCustomProperties(pathPointDataIndex, pathPointDataProperty);
+        }
+
+        /// <summary>
+        /// 绘制指定路点数据索引和路点数据属性的位置属性
+        /// </summary>
+        /// <param name="pathPointDataIndex"></param>
+        /// <param name="pathPointDataProperty"></param>
+        private void DrawPathPointPositionProperty(int pathPointDataIndex, SerializedProperty pathPointDataProperty)
+        {
+            if(pathPointDataProperty == null)
+            {
+                return;
+            }
             var positionProperty = pathPointDataProperty.FindPropertyRelative("Position");
-            var ppTypeProperty = pathPointDataProperty.FindPropertyRelative("PPType");
             var newVector3Value = positionProperty.vector3Value;
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.LabelField("X", GUILayout.Width(10f));
@@ -367,8 +396,88 @@ namespace PathPoint
             {
                 UpdatePathPointDataPosition(pathPointDataIndex, positionProperty, newVector3Value);
             }
-            EditorGUILayout.LabelField("路点类型", GUILayout.Width(50f));
-            ppTypeProperty.intValue = (int)(TPathPointType)EditorGUILayout.EnumPopup((TPathPointType)ppTypeProperty.intValue, GUILayout.Width(100f));
+        }
+
+        /// <summary>
+        /// 绘制指定路点数据索引和路点数据属性的路点类型属性
+        /// </summary>
+        /// <param name="pathPointDataIndex"></param>
+        /// <param name="pathPointDataProperty"></param>
+        private void DrawPathPointTypeProperty(int pathPointDataIndex, SerializedProperty pathPointDataProperty)
+        {
+            if (pathPointDataProperty == null)
+            {
+                return;
+            }
+            var pathPointTypeProperty = pathPointDataProperty.FindPropertyRelative("PathPointType");
+            if(pathPointTypeProperty == null)
+            {
+                return;
+            }
+            EditorGUILayout.LabelField("路点类型:", GUILayout.Width(60f));
+            pathPointTypeProperty.intValue = (int)(TPathPointType)EditorGUILayout.EnumPopup((TPathPointType)pathPointTypeProperty.intValue, GUILayout.Width(100f));
+        }
+
+        /// <summary>
+        /// 绘制指定路点数据索引和路点数据属性的自定义属性
+        /// </summary>
+        /// <param name="pathPointDataIndex"></param>
+        /// <param name="pathPointDataProperty"></param>
+        private void DrawPathPointCustomProperties(int pathPointDataIndex, SerializedProperty pathPointDataProperty)
+        {
+            if (pathPointDataProperty == null)
+            {
+                return;
+            }
+            var pathPointTypeProperty = pathPointDataProperty.FindPropertyRelative("PathPointType");
+            if(pathPointTypeProperty == null)
+            {
+                return;
+            }
+            var pathPointType = (TPathPointType)pathPointTypeProperty.intValue;
+            switch (pathPointType)
+            {
+                case TPathPointType.Wait:
+                    DrawWaitPathPointProperties(pathPointDataIndex, pathPointDataProperty);
+                    break;
+                case TPathPointType.Jump:
+                    DrawJumpPathPointProperties(pathPointDataIndex, pathPointDataProperty);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 绘制指定路点数据索引和路点数据属性的等待路点属性
+        /// </summary>
+        /// <param name="pathPointDataIndex"></param>
+        /// <param name="pathPointDataProperty"></param>
+        private void DrawWaitPathPointProperties(int pathPointDataIndex, SerializedProperty pathPointDataProperty)
+        {
+            var waitTimeProperty = pathPointDataProperty.FindPropertyRelative("WaitTime");
+            if(waitTimeProperty == null)
+            {
+                return;
+            }
+            EditorGUILayout.LabelField("等待时长:", GUILayout.Width(60f));
+            waitTimeProperty.floatValue = EditorGUILayout.FloatField(waitTimeProperty.floatValue, GUILayout.Width(60f));
+        }
+
+        /// <summary>
+        /// 绘制指定路点数据索引和路点数据属性的跳跃路点属性
+        /// </summary>
+        /// <param name="pathPointDataIndex"></param>
+        /// <param name="pathPointDataProperty"></param>
+        private void DrawJumpPathPointProperties(int pathPointDataIndex, SerializedProperty pathPointDataProperty)
+        {
+            var jumpAnimNameProperty = pathPointDataProperty.FindPropertyRelative("JumpAnimName");
+            if (jumpAnimNameProperty == null)
+            {
+                return;
+            }
+            EditorGUILayout.LabelField("跳跃动画:", GUILayout.Width(60f));
+            jumpAnimNameProperty.stringValue = EditorGUILayout.TextField(jumpAnimNameProperty.stringValue, GUILayout.Width(60f));
         }
 
         /// <summary>
@@ -602,47 +711,87 @@ namespace PathPoint
         /// <summary>
         /// 导出路点数据
         /// </summary>
-        private void ExportPathPointDatas()
+        private bool ExportPathPointDatas()
         {
+            if(!CheckCanExportPathPointDatas())
+            {
+                Debug.LogError($"不满足导出条件，导出路点数据失败！");
+                return false;
+            }
             CorrectPathPointPositions();
+            var exportFileName = mExportFileNameProperty.stringValue;
+            if(string.IsNullOrEmpty(exportFileName))
+            {
+                // 导出文件名为空则用GameObject名
+                exportFileName = mTarget.gameObject.name;
+            }
+            var exportType = (TPathExportType)mExportTypeProperty.intValue;
             var pathType = (TPathType)mPathTypeProperty.intValue;
-            TPathUtilities.MakeSureExportFolderExist(pathType);
-            if(pathType == TPathType.Normal)
+            var pathDataExport = ConstructPathDataExport();
+
+            var exportFileFullPath = TPathUtilities.GetExportFileFullPath(exportFileName, exportType, pathType);
+            var exportFileFolderFullPath = Path.GetDirectoryName(exportFileFullPath);
+            FolderUtilities.CheckAndCreateSpecificFolder(exportFileFolderFullPath);
+
+            if(exportType == TPathExportType.Json)
             {
-                ExportNormalPathPointDatas();
+                return DoExportJsonPathPointDatas(exportFileFullPath, pathDataExport, pathType);
             }
-            else
-            {
-                Debug.LogError($"不支持的路线类型:{pathType.ToString()}数据导出！");
-            }
+            Debug.LogError($"不支持的导出类型:{exportType.ToString()}数据导出！");
+            return false;
         }
 
         /// <summary>
-        /// 导出正常路线类型数据
+        /// 检查是否可以导出数据
         /// </summary>
-        private void ExportNormalPathPointDatas()
+        /// <returns></returns>
+        private bool CheckCanExportPathPointDatas()
         {
-            // 导出自定义格式(e.g. ***.csv)：
-            // 这里只简单导出路点索引，路点位置，路点类型
-            // ---------- | ---------- |-------------
-            //  路点索引  |  路点位置  |  路点类型(PathPointType)
-            //----------- | ---------- | -------------
-            //      0     ,    1;0     ,      0
-            //      1     ,    10;0    ,      1
-            var exportFileFullPath = TPathUtilities.GetExportFileFullPathByType(TPathType.Normal);
-            using (var st = new StreamWriter(exportFileFullPath))
+            // TODO:
+            // 可以在开始导出前做一些自定义检查，不符合就不导出
+            return true;
+        }
+
+        /// <summary>
+        /// 构建导出统一数据结构
+        /// </summary>
+        /// <returns></returns>
+        private TPathDataExport ConstructPathDataExport()
+        {
+            var pathDataExport = new TPathDataExport();
+            pathDataExport.PathType = (TPathType)mPathTypeProperty.intValue;
+            pathDataExport.PathwayType = (TPathwayType)mPathwayTypeProperty.intValue;
+            pathDataExport.Ease = (EasingFunction.Ease)mEaseProperty.intValue;
+            pathDataExport.IsLoop = mIsLoopProperty.boolValue;
+            pathDataExport.UpdateForward = mUpdateForwardProperty.boolValue;
+            pathDataExport.Duration = mDurationProperty.floatValue;
+            pathDataExport.Segment = mSegmentProperty.intValue;
+            for (int i = 0, length = mPathPointDataListProperty.arraySize; i < length; i++)
             {
-                for (int i = 0, length = mPathPointDataListProperty.arraySize - 1; i < length; i++)
-                {
-                    var pathPointDataProperty = mPathPointDataListProperty.GetArrayElementAtIndex(i);
-                    var positionProperty = pathPointDataProperty.FindPropertyRelative("Position");
-                    var pathPointDataPPTypeProperty = pathPointDataProperty.FindPropertyRelative("PPType");
-                    var pathPointPos = positionProperty.vector3Value;
-                    var pathPointType = (TPathPointType)pathPointDataPPTypeProperty.intValue;
-                    st.WriteLine($"{i},{pathPointPos.x};{pathPointPos.y};{pathPointPos.z},{(int)pathPointType}");
-                }
+                var pathPointDataProperty = mPathPointDataListProperty.GetArrayElementAtIndex(i);
+                var pathPointData = pathPointDataProperty.managedReferenceValue as TPathPointData;
+                pathDataExport.AddPathPointData(pathPointData);
             }
-            Debug.Log($"导出数据文件全路径:{exportFileFullPath}");
+            return pathDataExport;
+        }
+
+        /// <summary>
+        /// 导出Json格式路点数据
+        /// </summary>
+        /// <param name="exportFileFullPath"></param>
+        /// <param name="pathDataExport"></param>
+        /// <returns></returns>
+        private bool DoExportJsonPathPointDatas(string exportFileFullPath, TPathDataExport pathDataExport, TPathType pathType)
+        {
+            if(pathDataExport == null)
+            {
+                Debug.LogError($"导出Json数据失败，导出数据结构为空！");
+                return false;
+            }
+            var jsonStr = JsonUtility.ToJson(pathDataExport, true);
+            File.WriteAllText(exportFileFullPath, jsonStr);
+            Debug.Log($"导出Json数据文件全路径:{exportFileFullPath}成功！");
+            return true;
         }
 
         /// <summary>
@@ -675,11 +824,22 @@ namespace PathPoint
             var ease = (EasingFunction.Ease)mEaseProperty.intValue;
             mSimulationPathTweener = TPathTweenerManager.Singleton.DoPathTweenByPoints(simulationMoveGo.transform,
                                                                                         pathPointList, duration, isLoop,
-                                                                                        updateForward, () =>
+                                                                                        updateForward,
+                                                                                        () =>
                                                                                          {
                                                                                              mSimulationPathTweener = null;
                                                                                              Debug.Log($"路线模拟移动完成！");
-                                                                                         }, pathwayType, ease);
+                                                                                         },
+                                                                                         (index) =>
+                                                                                         {
+                                                                                            Debug.Log($"路线通过路点索引:{index}");
+
+                                                                                         },
+                                                                                         () =>
+                                                                                         {
+                                                                                            Debug.Log($"路线缓动完成！");
+                                                                                         },
+                                                                                         pathwayType, ease);
         }
 
         /// <summary>

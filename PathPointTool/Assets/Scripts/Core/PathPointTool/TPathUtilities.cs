@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 namespace PathPoint
@@ -34,7 +35,17 @@ namespace PathPoint
         private static Dictionary<TPathPointType, string> mPathTypeDrawIconMap = new Dictionary<TPathPointType, string>()
         {
             { TPathPointType.Invalide, "PathPointTool/invalide" },
-            { TPathPointType.Normal, "PathPointTool/pathpoint" },
+            { TPathPointType.Normal, "PathPointTool/normalPathPoint" },
+            { TPathPointType.Wait, "PathPointTool/waitPathPoint" },
+            { TPathPointType.Jump, "PathPointTool/jumpPathPoint" },
+        };
+
+        /// <summary>
+        /// 导出类型和文件扩展名映射Map<导出类型, 文件扩展名>
+        /// </summary>
+        private static Dictionary<TPathExportType, string> mPathExportTypeExtensionMap = new Dictionary<TPathExportType, string>()
+        {
+            { TPathExportType.Json, ".json" },
         };
 
         /// <summary>
@@ -47,47 +58,64 @@ namespace PathPoint
         }
 
         /// <summary>
-        /// 获取指定路点路线类型的导出目录全路径
+        /// 获取指定导出类型的文件扩展名
         /// </summary>
+        /// <param name="exportType"></param>
+        /// <returns></returns>
+        private static string GetExportTypeExtension(TPathExportType exportType)
+        {
+            if(!mPathExportTypeExtensionMap.TryGetValue(exportType, out var extension))
+            {
+                Debug.LogError($"不支持的导出类型:{exportType}，获取导出文件扩展名失败！");
+                return string.Empty;
+            }
+            return extension;
+        }
+
+        /// <summary>
+        /// 获取指定导出文件名和导出类型的完整导出文件名
+        /// Note:
+        /// 为空表示无有效导出文件名
+        /// </summary>
+        /// <param name="exportFileName"></param>
+        /// <param name="exportType"></param>
+        /// <returns></returns>
+        private static string GetExportFileName(string exportFileName, TPathExportType exportType)
+        {
+            var extension = GetExportTypeExtension(exportType);
+            if(string.IsNullOrEmpty(extension))
+            {
+                Debug.LogError($"获取导出类型:{exportType}的文件扩展名失败！");
+                return string.Empty;
+            }
+            return $"{exportFileName}{extension}";
+        }
+
+        /// <summary>
+        /// 获取指定导出类型和路点路线类型的导出目录全路径
+        /// </summary>
+        /// <param name="exportType"></param>
         /// <param name="pathType"></param>
         /// <returns></returns>
-        public static string GetExportFolderFullPath(TPathType pathType)
+        public static string GetExportFolderFullPath(TPathExportType exportType, TPathType pathType)
         {
             var baseExportFolderFullPath = PathUtilities.GetAssetFullPath(TPathConst.ExportFolderProjectRelativePath);
-            return Path.Combine(baseExportFolderFullPath, pathType.ToString());
+            var exportFolderFullPath = Path.Combine(baseExportFolderFullPath, exportType.ToString(), pathType.ToString());
+            return exportFolderFullPath;
         }
 
         /// <summary>
-        /// 确保导出目录存在
+        /// 获取指定导出文件全路径
         /// </summary>
-        /// <param name="pathType"></param>
-        public static void MakeSureExportFolderExist(TPathType pathType)
-        {
-            var exportFolderFullPath = GetExportFolderFullPath(pathType);
-            FolderUtilities.CheckAndCreateSpecificFolder(exportFolderFullPath);
-        }
-
-        /// <summary>
-        /// 获取指定路径类型的导出文件名
-        /// </summary>
+        /// <param name="exportFileName"></param>
+        /// <param name="exportType"></param>
         /// <param name="pathType"></param>
         /// <returns></returns>
-        public static string GetExportFileNameByType(TPathType pathType)
+        public static string GetExportFileFullPath(string exportFileName, TPathExportType exportType, TPathType pathType)
         {
-            var nowDate = DateTime.Now;
-            return $"{pathType.ToString()}_{nowDate.Month}_{nowDate.Day}_{nowDate.Hour}_{nowDate.Minute}_{nowDate.Second}.csv";
-        }
-
-        /// <summary>
-        /// 获取指定路径类型的导出文件全路径
-        /// </summary>
-        /// <param name="pathType"></param>
-        /// <returns></returns>
-        public static string GetExportFileFullPathByType(TPathType pathType)
-        {
-            var exportFolderFullPath = GetExportFolderFullPath(pathType);
-            var fileName = GetExportFileNameByType(pathType);
-            return Path.Combine(exportFolderFullPath, fileName);
+            var exportFolderFullPath = GetExportFolderFullPath(exportType, pathType);
+            var exportFileNameWithExtension = GetExportFileName(exportFileName, exportType);
+            return Path.Combine(exportFolderFullPath, exportFileNameWithExtension);
         }
 
         /// <summary>
@@ -163,6 +191,29 @@ namespace PathPoint
                 Debug.LogError($"找不到路点类型:{pathPointType}的绘制Icon！");
             }
             return drawIcon;
+        }
+
+        /// <summary>
+        /// 加载指定导出文件名，导出类型和路点路线类型的TPathDataExport
+        /// </summary>
+        /// <param name="exportFileName"></param>
+        /// <param name="exportType"></param>
+        /// <param name="pathType"></param>
+        /// <returns></returns>
+        public static TPathDataExport LoadTPathDataExport(string exportFileName, TPathExportType exportType = TPathExportType.Json,
+                                                          TPathType pathType = TPathType.Normal)
+        {
+            // 不同的资源加载方式请自行封装
+            var exportFileFullPath = GetExportFileFullPath(exportFileName, exportType, pathType);
+            var exportAssetFileRelativePath = PathUtilities.GetAssetsRelativeFolderPath(exportFileFullPath);
+            var pathDataExportAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(exportAssetFileRelativePath);
+            var pathDataExport = JsonUtility.FromJson<TPathDataExport>(pathDataExportAsset.text);
+            if(pathDataExport == null)
+            {
+                Debug.LogError($"加载导出文件:{exportAssetFileRelativePath}失败，无法获取有效的TPathDataExport！");
+                return null;
+            }
+            return pathDataExport;
         }
     }
 }

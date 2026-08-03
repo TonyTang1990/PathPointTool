@@ -90,6 +90,11 @@ namespace PathPoint
         private List<float> mPointDistanceList;
 
         /// <summary>
+        /// 每个路点占总路程比例列表(数量 = 顶点数量)
+        /// </summary>
+        private List<float> mPointRatioList;
+
+        /// <summary>
         /// 每一段细分顶点数组Map<段数索引(从0开始), 顶点数组>
         /// Note:
         /// 此数据采取跟随分段数据更新而清除
@@ -106,6 +111,7 @@ namespace PathPoint
             Segment = 15;
             Length = 0f;
             mPointDistanceList = new List<float>();
+            mPointRatioList = new List<float>();
             mSegmentPointsMap = new Dictionary<int, Vector3[]>();
             CaculatePathPointList = new List<Vector3>();
         }
@@ -132,6 +138,7 @@ namespace PathPoint
             Segment = 15;
             Length = 0f;
             mPointDistanceList.Clear();
+            mPointRatioList.Clear();
             mSegmentPointsMap.Clear();
             CaculatePathPointList.Clear();
         }
@@ -212,6 +219,15 @@ namespace PathPoint
         }
 
         /// <summary>
+        /// 获取路点数量
+        /// </summary>
+        /// <returns></returns>
+        public int GetPointNum()
+        {
+            return PathPointList != null ? PathPointList.Count : 0;
+        }
+
+        /// <summary>
         /// 添加路点到尾部
         /// </summary>
         /// <param name="point">路点位置</param>
@@ -272,6 +288,31 @@ namespace PathPoint
         }
 
         /// <summary>
+        /// 获取指定比例t(0-1)对应的下一个路点索引
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public int GetNextPointIndexByRatio(float t)
+        {
+            // 正序找到第一个路点进度>=t
+            var pointRatioNum = mPointRatioList != null ? mPointRatioList.Count : 0;
+            if(pointRatioNum == 0)
+            {
+                return -1;
+            }
+            t = Mathf.Clamp01(t);
+            for(int index = 0; index < pointRatioNum; index++)
+            {
+                var pointRatio = mPointRatioList[index];
+                if(pointRatio >= t)
+                {
+                    return index;
+                }
+            }
+            return pointRatioNum - 1;
+        }
+
+        /// <summary>
         /// 获取指定比例t(0-1)所在分段索引(从0开始)
         /// </summary>
         /// <param name="t"></param>
@@ -313,12 +354,28 @@ namespace PathPoint
         }
 
         /// <summary>
+        /// 获取指定顶点索引的占总路程比例
+        /// </summary>
+        /// <param name="pointIndex"></param>
+        /// <returns></returns>
+        public float GetPointRatioByIndex(int pointIndex)
+        {
+            var pointRatioNum = mPointRatioList.Count;
+            if (pointIndex < 0 || pointIndex >= pointRatioNum)
+            {
+                Debug.LogError($"获取顶点索引:{pointIndex}占总路程比例不在有效索引范围内:{0}-{pointRatioNum - 1}，获取指定索引顶点占总路程比例失败！");
+                return 0f;
+            }
+            return mPointRatioList[pointIndex];
+        }
+
+        /// <summary>
         /// 更新路线相关数据
         /// </summary>
         public void UpdatePathDatas()
         {
             UpdateCaculatePathPointDatas();
-            UpdatePathLengthDatas();
+            UpdatePointDatas();
             UpdateSegmentDatas();
         }
 
@@ -348,9 +405,9 @@ namespace PathPoint
         }
 
         /// <summary>
-        /// 更新路线长度数据
+        /// 更新路点相关数据(比如路点长度和路点占总路程比例)
         /// </summary>
-        private void UpdatePathLengthDatas()
+        private void UpdatePointDatas()
         {
             mPointDistanceList.Clear();
             var pointNum = PathPointList.Count;
@@ -364,6 +421,14 @@ namespace PathPoint
                 var pointDistance = Vector3.Distance(firstPoint, secondPoint);
                 mPointDistanceList.Add(pointDistance);
                 Length += pointDistance;
+            }
+            mPointRatioList.Clear();
+            var accumulatedLength = 0f;
+            for (int i = 0; i < pointNum; i++)
+            {
+                var pointDistance = (i < mPointDistanceList.Count) ? mPointDistanceList[i] : 0f;
+                accumulatedLength += pointDistance;
+                mPointRatioList.Add(Length > 0 ? accumulatedLength / Length : 0f);
             }
         }
 
@@ -387,7 +452,7 @@ namespace PathPoint
                 return;
             }
             var caculatePointNum = CaculatePathPointList.Count;
-            var segmentPointNum = TPathUtilities.GetSegmentPointNumByType(PathwayType);
+            //var segmentPointNum = TPathUtilities.GetSegmentPointNumByType(PathwayType);
             var segmentStepNum = TPathUtilities.GetSegmentStepNumByType(PathwayType);
             var pointStep = Mathf.Clamp(segmentStepNum, 1, Int32.MaxValue);
             var segmentLength = 0f;
@@ -398,7 +463,7 @@ namespace PathPoint
             {
                 var pointStartIndex = i * pointStep;
                 segmentLength = 0f;
-                var firstPointPathRatio = distanceAccumulation / Length;
+                var firstPointPathRatio = Length > 0f ? distanceAccumulation / Length : 0f;
                 for (int j = pointStartIndex, length2 = pointStartIndex + pointStep; j < length2; j++)
                 {
                     var pointDistanceIndex = Mathf.Clamp(j, 0, maxPointNum);
@@ -406,7 +471,7 @@ namespace PathPoint
                     segmentLength += pointDistance;
                     distanceAccumulation += pointDistance;
                 }
-                var lastPointPathRatio = distanceAccumulation / Length;
+                var lastPointPathRatio = Length > 0f ? distanceAccumulation / Length : 0f;
                 var segment = ObjectPool.Singleton.pop<TSegment>();
                 segment.Init(pointStartIndex, segmentLength, firstPointPathRatio, lastPointPathRatio, PathwayType);
                 SegmentList.Add(segment);

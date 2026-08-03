@@ -1,0 +1,535 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1983746752215174243
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7366875356241988469}
+  - component: {fileID: 5744921416199552983}
+  - component: {fileID: 1590341422099373836}
+  - component: {fileID: 8073814858482585351}
+  m_Layer: 0
+  m_Name: SimulationCube
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7366875356241988469
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1983746752215174243}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.70742005, z: -0, w: 0.7067934}
+  m_LocalPosition: {x: 18, y: 0, z: 12}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1530205429768803379}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &5744921416199552983
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1983746752215174243}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1590341422099373836
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1983746752215174243}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &8073814858482585351
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1983746752215174243}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &2233989030176844080
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5913386875982691291}
+  - component: {fileID: 1780227493551595446}
+  m_Layer: 0
+  m_Name: LineRenderer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5913386875982691291
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2233989030176844080}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1530205429768803379}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!120 &1780227493551595446
+LineRenderer:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2233989030176844080}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 0
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 0
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 29cb47a966e3c34488c74a277fced708, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_Positions:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0.38666672, y: 0, z: 0.0133333355}
+  - {x: 0.7466667, y: 0, z: 0.053333342}
+  - {x: 1.08, y: 0, z: 0.120000005}
+  - {x: 1.3866668, y: 0, z: 0.21333337}
+  - {x: 1.6666666, y: 0, z: 0.33333337}
+  - {x: 1.9200001, y: 0, z: 0.48000002}
+  - {x: 2.1466665, y: 0, z: 0.6533333}
+  - {x: 2.3466668, y: 0, z: 0.8533335}
+  - {x: 2.52, y: 0, z: 1.08}
+  - {x: 2.6666667, y: 0, z: 1.3333335}
+  - {x: 2.7866666, y: 0, z: 1.6133333}
+  - {x: 2.88, y: 0, z: 1.9200001}
+  - {x: 2.9466667, y: 0, z: 2.2533336}
+  - {x: 2.9866667, y: 0, z: 2.6133332}
+  - {x: 3, y: 0, z: 3}
+  - {x: 3.0133333, y: 0, z: 3.3866665}
+  - {x: 3.0533338, y: 0, z: 3.746667}
+  - {x: 3.1200001, y: 0, z: 4.08}
+  - {x: 3.2133336, y: 0, z: 4.386667}
+  - {x: 3.3333333, y: 0, z: 4.666666}
+  - {x: 3.48, y: 0, z: 4.92}
+  - {x: 3.6533332, y: 0, z: 5.1466665}
+  - {x: 3.8533335, y: 0, z: 5.346667}
+  - {x: 4.08, y: 0, z: 5.52}
+  - {x: 4.3333335, y: 0, z: 5.666667}
+  - {x: 4.613333, y: 0, z: 5.786667}
+  - {x: 4.92, y: 0, z: 5.88}
+  - {x: 5.2533336, y: 0, z: 5.9466667}
+  - {x: 5.613333, y: 0, z: 5.9866667}
+  - {x: 6, y: 0, z: 6}
+  - {x: 6.3866663, y: 0, z: 6.0133333}
+  - {x: 6.746667, y: 0, z: 6.0533338}
+  - {x: 7.0800004, y: 0, z: 6.1200004}
+  - {x: 7.3866673, y: 0, z: 6.213334}
+  - {x: 7.666666, y: 0, z: 6.333333}
+  - {x: 7.9200006, y: 0, z: 6.48}
+  - {x: 8.146667, y: 0, z: 6.653333}
+  - {x: 8.346667, y: 0, z: 6.8533335}
+  - {x: 8.52, y: 0, z: 7.08}
+  - {x: 8.666667, y: 0, z: 7.3333335}
+  - {x: 8.786667, y: 0, z: 7.613333}
+  - {x: 8.88, y: 0, z: 7.92}
+  - {x: 8.946667, y: 0, z: 8.253333}
+  - {x: 8.986667, y: 0, z: 8.613333}
+  - {x: 9, y: 0, z: 9}
+  - {x: 9, y: 0, z: 9.4}
+  - {x: 9, y: 0, z: 9.8}
+  - {x: 9, y: 0, z: 10.200001}
+  - {x: 9.000001, y: 0, z: 10.6}
+  - {x: 8.999999, y: 0, z: 10.999999}
+  - {x: 9, y: 0, z: 11.4}
+  - {x: 9, y: 0, z: 11.799999}
+  - {x: 9, y: 0, z: 12.200001}
+  - {x: 9, y: 0, z: 12.6}
+  - {x: 9, y: 0, z: 13}
+  - {x: 9, y: 0, z: 13.4}
+  - {x: 9, y: 0, z: 13.8}
+  - {x: 9, y: 0, z: 14.200001}
+  - {x: 9, y: 0, z: 14.6}
+  - {x: 9, y: 0, z: 15}
+  - {x: 9.013333, y: 0, z: 15.386667}
+  - {x: 9.053333, y: 0, z: 15.746668}
+  - {x: 9.120001, y: 0, z: 16.08}
+  - {x: 9.213334, y: 0, z: 16.386667}
+  - {x: 9.333332, y: 0, z: 16.666666}
+  - {x: 9.4800005, y: 0, z: 16.920002}
+  - {x: 9.653334, y: 0, z: 17.146666}
+  - {x: 9.853333, y: 0, z: 17.346668}
+  - {x: 10.08, y: 0, z: 17.52}
+  - {x: 10.333334, y: 0, z: 17.666668}
+  - {x: 10.613333, y: 0, z: 17.786667}
+  - {x: 10.92, y: 0, z: 17.880001}
+  - {x: 11.253334, y: 0, z: 17.946667}
+  - {x: 11.613333, y: 0, z: 17.986666}
+  - {x: 12, y: 0, z: 18}
+  - {x: 12.386666, y: 0, z: 17.986668}
+  - {x: 12.746668, y: 0, z: 17.946667}
+  - {x: 13.080001, y: 0, z: 17.880001}
+  - {x: 13.386666, y: 0, z: 17.786669}
+  - {x: 13.666665, y: 0, z: 17.666664}
+  - {x: 13.92, y: 0, z: 17.52}
+  - {x: 14.146666, y: 0, z: 17.346666}
+  - {x: 14.346667, y: 0, z: 17.146667}
+  - {x: 14.52, y: 0, z: 16.919998}
+  - {x: 14.666666, y: 0, z: 16.666666}
+  - {x: 14.786667, y: 0, z: 16.386665}
+  - {x: 14.88, y: 0, z: 16.08}
+  - {x: 14.946667, y: 0, z: 15.746668}
+  - {x: 14.986667, y: 0, z: 15.386666}
+  - {x: 15, y: 0, z: 15}
+  - {x: 15.013333, y: 0, z: 14.613334}
+  - {x: 15.053334, y: 0, z: 14.253334}
+  - {x: 15.120001, y: 0, z: 13.92}
+  - {x: 15.213333, y: 0, z: 13.613334}
+  - {x: 15.333332, y: 0, z: 13.333332}
+  - {x: 15.4800005, y: 0, z: 13.08}
+  - {x: 15.653333, y: 0, z: 12.8533325}
+  - {x: 15.853333, y: 0, z: 12.653334}
+  - {x: 16.08, y: 0, z: 12.48}
+  - {x: 16.333332, y: 0, z: 12.333334}
+  - {x: 16.613335, y: 0, z: 12.213333}
+  - {x: 16.92, y: 0, z: 12.12}
+  - {x: 17.253334, y: 0, z: 12.053334}
+  - {x: 17.613333, y: 0, z: 12.013332}
+  - {x: 18, y: 0, z: 12}
+  m_Parameters:
+    serializedVersion: 3
+    widthMultiplier: 1
+    widthCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    colorGradient:
+      serializedVersion: 2
+      key0: {r: 1, g: 1, b: 1, a: 1}
+      key1: {r: 1, g: 1, b: 1, a: 1}
+      key2: {r: 0, g: 0, b: 0, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
+      key4: {r: 0, g: 0, b: 0, a: 0}
+      key5: {r: 0, g: 0, b: 0, a: 0}
+      key6: {r: 0, g: 0, b: 0, a: 0}
+      key7: {r: 0, g: 0, b: 0, a: 0}
+      ctime0: 0
+      ctime1: 65535
+      ctime2: 0
+      ctime3: 0
+      ctime4: 0
+      ctime5: 0
+      ctime6: 0
+      ctime7: 0
+      atime0: 0
+      atime1: 65535
+      atime2: 0
+      atime3: 0
+      atime4: 0
+      atime5: 0
+      atime6: 0
+      atime7: 0
+      m_Mode: 0
+      m_ColorSpace: -1
+      m_NumColorKeys: 2
+      m_NumAlphaKeys: 2
+    numCornerVertices: 0
+    numCapVertices: 0
+    alignment: 1
+    textureMode: 1
+    textureScale: {x: 1, y: 1}
+    shadowBias: 0.5
+    generateLightingData: 0
+  m_MaskInteraction: 0
+  m_UseWorldSpace: 1
+  m_Loop: 0
+  m_ApplyActiveColorSpace: 0
+--- !u!1 &2423629226750361949
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1530205429768803379}
+  - component: {fileID: 3988176341684629674}
+  m_Layer: 0
+  m_Name: PathData1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1530205429768803379
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2423629226750361949}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5913386875982691291}
+  - {fileID: 7366875356241988469}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3988176341684629674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2423629226750361949}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13eb32fed4b4a6e48b979778118f56c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ExportFileName: 
+  ExportType: 1
+  DrawSwitch: 1
+  PathType: 1
+  PathwayType: 2
+  Ease: 21
+  IsLoop: 0
+  UpdateForward: 1
+  Duration: 10
+  PathPointStartPos: {x: 0, y: 0, z: 0}
+  PathPointGap: 1
+  Segment: 15
+  PathPointSphereSize: 0.5
+  DrawLineRenderer: {fileID: 1780227493551595446}
+  PathPointSphereColor: {r: 0, g: 1, b: 0, a: 1}
+  PathDrawColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  SubPathPointDrawColor: {r: 0, g: 0, b: 1, a: 1}
+  PathPointDataList:
+  - rid: 6667209843240861710
+  - rid: 6667209843240861711
+  - rid: 6667209843240861712
+  - rid: 6667209843240861713
+  - rid: 6667209843240861723
+  - rid: 6667209843240861724
+  - rid: 6667209843240861725
+  - rid: 6667209843240861726
+  - rid: 6667209843240861727
+  - rid: 6667209843240861728
+  - rid: 6667209843240861729
+  - rid: 6667209843240861730
+  - rid: 6667209843240861731
+  - rid: 6667209843240861733
+  - rid: 6667209843240861735
+  SimulationMoveGO: {fileID: 1983746752215174243}
+  references:
+    version: 2
+    RefIds:
+    - rid: 6667209843240861710
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 0, y: 0, z: 0}
+        PathPointType: 2
+        WaitTime: 0
+        JumpAnimName: 
+    - rid: 6667209843240861711
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 3, y: 0, z: 0}
+        PathPointType: 3
+        WaitTime: 3
+        JumpAnimName: 
+    - rid: 6667209843240861712
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 3, y: 0, z: 3}
+        PathPointType: 2
+        WaitTime: 0
+        JumpAnimName: 
+    - rid: 6667209843240861713
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 3, y: 0, z: 6}
+        PathPointType: 2
+        WaitTime: 0
+        JumpAnimName: 
+    - rid: 6667209843240861723
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 6, y: 0, z: 6}
+        PathPointType: 2
+        WaitTime: 0
+        JumpAnimName: 
+    - rid: 6667209843240861724
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 9, y: 0, z: 6}
+        PathPointType: 4
+        WaitTime: 0
+        JumpAnimName: Jump
+    - rid: 6667209843240861725
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 9, y: 0, z: 9}
+        PathPointType: 2
+        WaitTime: 0
+        JumpAnimName: 
+    - rid: 6667209843240861726
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 9, y: 0, z: 12}
+        PathPointType: 2
+        WaitTime: 0
+        JumpAnimName: 
+    - rid: 6667209843240861727
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 9, y: 0, z: 15}
+        PathPointType: 2
+        WaitTime: 0
+        JumpAnimName: 
+    - rid: 6667209843240861728
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 9, y: 0, z: 18}
+        PathPointType: 2
+        WaitTime: 0
+        JumpAnimName: 
+    - rid: 6667209843240861729
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 12, y: 0, z: 18}
+        PathPointType: 2
+        WaitTime: 0
+        JumpAnimName: 
+    - rid: 6667209843240861730
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 15, y: 0, z: 18}
+        PathPointType: 3
+        WaitTime: 2
+        JumpAnimName: 
+    - rid: 6667209843240861731
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 15, y: 0, z: 15}
+        PathPointType: 2
+        WaitTime: 0
+        JumpAnimName: 
+    - rid: 6667209843240861733
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 15, y: 0, z: 12}
+        PathPointType: 2
+        WaitTime: 0
+        JumpAnimName: 
+    - rid: 6667209843240861735
+      type: {class: TPathPointData, ns: PathPoint, asm: Assembly-CSharp}
+      data:
+        Position: {x: 18, y: 0, z: 12}
+        PathPointType: 2
+        WaitTime: 0
+        JumpAnimName: 

@@ -17,6 +17,18 @@ using UnityEngine.UI;
 public class GameLaucher : MonoBehaviour
 {
     /// <summary>
+    /// 加载PathData1路径按钮
+    /// </summary>
+    [Header("加载PathData1路径按钮")]
+    public Button BtnLoadPathData1;
+
+    /// <summary>
+    /// 加载PathData2路径按钮
+    /// </summary>
+    [Header("加载PathData2路径按钮")]
+    public Button BtnLoadPathData2;
+
+    /// <summary>
     /// 开始路线缓动按钮
     /// </summary>
     [Header("开始路线缓动按钮")]
@@ -39,22 +51,11 @@ public class GameLaucher : MonoBehaviour
     /// </summary>
     [Header("路线缓动对象")]
     public GameObject PathMoveGo;
-
+    
     /// <summary>
-    /// 测试运行时路线缓动
+    /// 已加载导出的路点数据
     /// </summary>
-    private List<Vector3> mPointPosList = new List<Vector3>()
-    {
-        new Vector3(20, 0, 0),
-        new Vector3(20, 0, 2),
-        new Vector3(22, 0, 2),
-        new Vector3(24, 0, 2),
-        new Vector3(24, 0, 4),
-        new Vector3(26, 0, 4),
-        new Vector3(26, 0, 6),
-        new Vector3(28, 0, 6),
-        new Vector3(28, 0, 4),
-    };
+    private TPathDataExport mLoadedPathDataExport;
 
     /// <summary>
     /// 运行时路线缓动Tweener
@@ -63,9 +64,29 @@ public class GameLaucher : MonoBehaviour
 
     private void Awake()
     {
+        BtnLoadPathData1.onClick.AddListener(OnBtnLoadPathData1);
+        BtnLoadPathData2.onClick.AddListener(OnBtnLoadPathData2);
         BtnStartPathMove.onClick.AddListener(OnBtnStartPathMove);
         BtnPausePathMove.onClick.AddListener(OnBtnPausePathMove);
         BtnResumePathMove.onClick.AddListener(OnBtnResumePathMove);
+    }
+
+    /// <summary>
+    /// 响应加载PathData1路径按钮点击
+    /// </summary>
+    private void OnBtnLoadPathData1()
+    {
+        Debug.Log($"GameLaucher:OnBtnLoadPathData1()");
+        mLoadedPathDataExport = TPathUtilities.LoadTPathDataExport("PathData1", TPathExportType.Json, TPathType.Normal);
+    }
+    
+    /// <summary>
+    /// 响应加载PathData2路径按钮点击
+    /// </summary>
+    private void OnBtnLoadPathData2()
+    {
+        Debug.Log($"GameLaucher:OnBtnLoadPathData2()");
+        mLoadedPathDataExport = TPathUtilities.LoadTPathDataExport("PathData2", TPathExportType.Json, TPathType.Normal);
     }
 
     /// <summary>
@@ -79,12 +100,30 @@ public class GameLaucher : MonoBehaviour
             TPathTweenerManager.Singleton.RemovePathTween(mPathTweener);
             mPathTweener = null;
         }
-        mPathTweener = TPathTweenerManager.Singleton.DoPathTweenByPoints(PathMoveGo.transform, mPointPosList,
-                                                                         10, false, false, () =>
-                                                                         {
-                                                                             Debug.Log($"运行时路线缓动完成！");
-                                                                             mPathTweener = null;
-                                                                         }, TPathwayType.Bezier);
+        if(mLoadedPathDataExport == null)
+        {
+            Debug.LogError($"没有加载有效的路点数据，无法开始路线缓动！");
+            return;
+        }
+        mPathTweener = TPathTweenerManager.Singleton.DoPathTweenByTPathDataExport(PathMoveGo.transform, mLoadedPathDataExport,
+                                                                                 () =>
+                                                                                 {
+                                                                                     Debug.Log($"运行时路线缓动完成！");
+                                                                                     mPathTweener = null;
+                                                                                 },
+                                                                                 (index) =>
+                                                                                 {
+                                                                                     Debug.Log($"经过路点:{index}");
+                                                                                     var pathPointData = mLoadedPathDataExport.GetPathPointData(index);
+                                                                                     if(pathPointData != null)
+                                                                                     {
+                                                                                         Debug.Log($"路点数据:{pathPointData.ToString()}");
+                                                                                     }
+                                                                                 },
+                                                                                 () =>
+                                                                                 {
+                                                                                     Debug.Log($"路线缓动循环开始！");
+                                                                                 });
     }
 
     /// <summary>

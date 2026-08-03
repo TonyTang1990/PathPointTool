@@ -17,7 +17,19 @@ namespace PathPoint
     /// </summary>
     [ExecuteInEditMode]
     public class TPathData : MonoBehaviour
-    {
+    {   
+        /// <summary>
+        /// 导出文件名
+        /// </summary>
+        [Header("导出文件名(默认不填用GameObejct名)")]
+        public string ExportFileName = string.Empty;
+
+        /// <summary>
+        /// 路线导出类型
+        /// </summary>
+        [Header("路线导出类型")]
+        public TPathExportType ExportType = TPathExportType.Json;
+
         /// <summary>
         /// 绘制总开关
         /// </summary>
@@ -273,7 +285,7 @@ namespace PathPoint
                 var pathPointData = PathPointDataList[i];
                 if (pathPointData != null)
                 {
-                    var drawIcon = TPathUtilities.GetDrawIconByPathPointType(pathPointData.PPType);
+                    var drawIcon = TPathUtilities.GetDrawIconByPathPointType(pathPointData.PathPointType);
                     Gizmos.DrawIcon(pathPointData.Position, drawIcon);
                 }
             }

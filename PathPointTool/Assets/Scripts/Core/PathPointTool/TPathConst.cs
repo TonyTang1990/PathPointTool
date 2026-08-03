@@ -20,7 +20,7 @@ namespace PathPoint
         /// <summary>
         /// 导出目录相对工程目录路径
         /// </summary>
-        public const string ExportFolderProjectRelativePath = "/PathPointExport/";
+        public const string ExportFolderProjectRelativePath = "Assets/PathPointExport/";
 
         /// <summary>
         /// Transform类型信息
