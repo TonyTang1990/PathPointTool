@@ -537,9 +537,17 @@ private void OnBtnStartPathMove()
 }
 ```
 
+![PathTweenerGameView](/img/Unity/PathPointTool/PathTweenerGameView.PNG)
+
 ![PassPointLogView](/img/Unity/PathPointTool/PassPointLogView.PNG)
 
 可以看到通过对应回调我们访问对应路点数据已经可以拿到路点类型+自定义路点数据了，如果未来想根据路点类型进行DIY逻辑编写，则可以直接在回调里访问数据编写对应逻辑即可。
+
+## 店铺
+
+觉得好用的可以购买淘宝商店版本支持作者：
+
+[PathPointTool路点工具(淘宝)](https://item.taobao.com/item.htm?id=1072085941116&skuId=6286344683115)
 
 ## 博客
 
